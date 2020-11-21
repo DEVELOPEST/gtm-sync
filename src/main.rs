@@ -30,5 +30,6 @@ fn main() {
     let path = "./repo".parse().unwrap();
     let repo = git::clone(&url, &path).unwrap();
     let _res = git::fetch(&repo);
+    let _commits = git::read_commits(&repo);
     //rocket::ignite().mount("/", routes![index]).launch();
 }
