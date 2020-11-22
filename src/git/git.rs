@@ -62,7 +62,7 @@ pub fn read_commits(repo: &Repository) -> Result<Vec<Commit>, Error> {
             .map(|n| repo.find_note(Option::from(GTM_NOTES_REF), n.1).unwrap())
             .collect();
 
-        let res=  gtm::parse_commit(&commit, &notes)?;
+        let res=  gtm::parse_commit(&repo, &commit, &notes)?;
         println!("{}", res);
     }
     // let a = repo.notes(Option::from(GTM_NOTES_REF))
