@@ -1,7 +1,7 @@
 #![deny(warnings)]
 
 use git2::build::{RepoBuilder};
-use git2::{FetchOptions, RemoteCallbacks, Repository, Error, Commit, Oid};
+use git2::{FetchOptions, RemoteCallbacks, Repository, Error, Commit, Note};
 use std::path::{Path};
 use std::fs;
 
@@ -56,10 +56,10 @@ pub fn read_commits(repo: &Repository) -> Result<Vec<Commit>, Error> {
     for commit_oid in revwalk {
         let commit_oid = commit_oid?;
         let commit = repo.find_commit(commit_oid)?;
-        let notes: Vec<Oid> = repo.notes(Option::from(GTM_NOTES_REF))?
+        let notes: Vec<Note> = repo.notes(Option::from(GTM_NOTES_REF))?
             .map(|n| n.unwrap())
             .filter(|n| n.1 == commit_oid)
-            .map(|n| n.0)
+            .map(|n| repo.find_note(Option::from(GTM_NOTES_REF), n.1).unwrap())
             .collect();
 
         let res=  gtm::parse_commit(&commit, &notes)?;
