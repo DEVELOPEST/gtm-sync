@@ -28,7 +28,7 @@ fn main() {
     println!("{}", &loaded_cfg.target_host);
     let url = "https://github.com/DEVELOPEST/gtm-sync.git".parse().unwrap();
     let path = "./repo".parse().unwrap();
-    let repo = git::clone(&url, &path).unwrap();
+    let repo = git::clone_or_open(&url, &path).unwrap();
     let _res = git::fetch(&repo);
     let _commits = git::read_commits(&repo);
     //rocket::ignite().mount("/", routes![index]).launch();

@@ -3,6 +3,7 @@
 use git2::build::{RepoBuilder};
 use git2::{FetchOptions, RemoteCallbacks, Repository, Error, Commit, Oid};
 use std::path::{Path};
+use std::fs;
 
 mod gtm;
 
@@ -10,7 +11,19 @@ static GTM_NOTES_REF: &str = "refs/notes/gtm-data";
 static GTM_NOTES_REF_SPEC: &str = "+refs/notes/gtm-data:refs/notes/gtm-data";
 static DEFAULT_ORIGIN: &str = "origin";
 
-pub fn clone(url: &String, path: &String) -> Result<Repository, Error> {
+pub fn clone_or_open(url: &String, repo_path: &String) -> Result<Repository, Error> {
+
+    let path = Path::new(&repo_path);
+
+    if path.exists() {
+        let repo = Repository::open(path);
+        if repo.is_ok() {
+            return repo;
+        }
+        let _remove = fs::remove_dir_all(&path)
+            .expect(&*format!("Unable to remove dir: {}", repo_path));
+        return clone_or_open(&url, &repo_path);
+    }
 
     let cb = RemoteCallbacks::new();
     // cb.certificate_check(|cc| {
@@ -23,7 +36,7 @@ pub fn clone(url: &String, path: &String) -> Result<Repository, Error> {
 
     return  RepoBuilder::new()
         .fetch_options(fo)
-        .clone(&url, Path::new(&path));
+        .clone(&url, path);
 }
 
 pub fn fetch(repo: &Repository) {
