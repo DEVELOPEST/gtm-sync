@@ -152,7 +152,7 @@ impl fmt::Display for Commit {
 
 impl fmt::Display for File {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:>2}h{:>3}m{:>3}s : {:<35} +{:<4} - {}",
+        write!(f, "{:>2}h{:>3}m{:>3}s : {:<45} +{:<4} - {}",
                self.time_total / 3600,
                (self.time_total % 3600) / 60,
                self.time_total % 60,

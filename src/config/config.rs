@@ -15,6 +15,10 @@ pub struct SyncConfig {
 pub struct Repository {
     pub url: String,
     pub path: String,
+    pub ssh_private_key: Option<String>,
+    pub ssh_public_key: Option<String>,
+    pub ssh_user: Option<String>,
+    pub ssh_passphrase: Option<String>,
 }
 
 pub fn load(config_file: &String) -> SyncConfig {

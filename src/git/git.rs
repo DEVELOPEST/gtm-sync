@@ -1,19 +1,21 @@
 #![deny(warnings)]
 
-use git2::build::{RepoBuilder};
-use git2::{FetchOptions, RemoteCallbacks, Repository, Error, Commit, Note};
-use std::path::{Path};
 use std::fs;
+use std::path::Path;
+
+use git2::{Commit, Error, FetchOptions, Note, RemoteCallbacks, Repository};
+use git2::build::RepoBuilder;
 
 mod gtm;
+#[path = "../config/config.rs"]
+pub mod config;
 
 static GTM_NOTES_REF: &str = "refs/notes/gtm-data";
 static GTM_NOTES_REF_SPEC: &str = "+refs/notes/gtm-data:refs/notes/gtm-data";
 static DEFAULT_ORIGIN: &str = "origin";
 
-pub fn clone_or_open(url: &String, repo_path: &String) -> Result<Repository, Error> {
-
-    let path = Path::new(&repo_path);
+pub fn clone_or_open(repo_config: &config::Repository) -> Result<Repository, Error> {
+    let path = Path::new(&repo_config.path);
 
     if path.exists() {
         let repo = Repository::open(path);
@@ -21,30 +23,60 @@ pub fn clone_or_open(url: &String, repo_path: &String) -> Result<Repository, Err
             return repo;
         }
         let _remove = fs::remove_dir_all(&path)
-            .expect(&*format!("Unable to remove dir: {}", repo_path));
-        return clone_or_open(&url, &repo_path);
+            .expect(&*format!("Unable to remove dir: {}", repo_config.path));
+        return clone_or_open(&repo_config);
     }
 
-    let cb = RemoteCallbacks::new();
-    // cb.certificate_check(|cc| {
-    //     true
-    // });
+    let fo = generate_fetch_options(repo_config);
+
+    return RepoBuilder::new()
+        .fetch_options(fo)
+        .clone(&repo_config.url, Path::new(&repo_config.path));
+}
+
+fn generate_fetch_options(repo_config: &config::Repository) -> FetchOptions {
+    let mut cb = RemoteCallbacks::new();
+    let repo_config = repo_config.clone();
+    cb.credentials(move |_c, _o, t| {
+        if t.is_ssh_key() {
+            return git2::Cred::ssh_key(
+                &repo_config.ssh_user.as_ref().unwrap(),
+                Option::from(Path::new(&repo_config.ssh_public_key.as_ref().unwrap())),
+                &Path::new(&repo_config.ssh_private_key.as_ref().unwrap()),
+                repo_config.ssh_passphrase.as_ref().map(|x| &**x),
+            )
+        }
+        return git2::Cred::default();
+    });
 
 
     let mut fo = FetchOptions::new();
     fo.remote_callbacks(cb);
-
-    return  RepoBuilder::new()
-        .fetch_options(fo)
-        .clone(&url, path);
+    return fo;
 }
 
-pub fn fetch(repo: &Repository) {
-    repo.remote_add_fetch(DEFAULT_ORIGIN,GTM_NOTES_REF_SPEC)
-        .expect("Unable to add fetch ref spec for gtm-data!");
+
+pub fn fetch(repo: &Repository, repo_config: &config::Repository) {
     let mut remote = repo.find_remote(DEFAULT_ORIGIN)
         .expect("Unable to find remote 'origin'");
-    remote.fetch(&[] as &[&str], None, None).expect("Error fetching data!");
+    let mut ref_added = false;
+    let refs = remote.fetch_refspecs().unwrap();
+    for i in 0..refs.len() {
+        if refs.get(i).unwrap() == GTM_NOTES_REF_SPEC {
+            ref_added = true;
+            break;
+        }
+    }
+    if !ref_added {
+        repo.remote_add_fetch(DEFAULT_ORIGIN, GTM_NOTES_REF_SPEC)
+            .expect("Unable to add fetch ref spec for gtm-data!");
+        remote = repo.find_remote(DEFAULT_ORIGIN)
+            .expect("Unable to find remote 'origin'");
+    }
+
+    let mut fo = generate_fetch_options(repo_config);
+    remote.fetch(&[] as &[&str], Option::from(&mut fo), None)
+        .expect("Error fetching data!");
     remote.disconnect().unwrap();
 }
 
