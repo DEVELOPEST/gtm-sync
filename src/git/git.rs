@@ -5,10 +5,9 @@ use std::path::Path;
 
 use git2::{Commit, Error, FetchOptions, Note, RemoteCallbacks, Repository};
 use git2::build::RepoBuilder;
+use crate::config;
 
 mod gtm;
-#[path = "../config/config.rs"]
-pub mod config;
 
 static GTM_NOTES_REF: &str = "refs/notes/gtm-data";
 static GTM_NOTES_REF_SPEC: &str = "+refs/notes/gtm-data:refs/notes/gtm-data";
@@ -40,9 +39,9 @@ fn generate_fetch_options(repo_config: &config::Repository) -> FetchOptions {
     cb.credentials(move |_c, _o, t| {
         if t.is_ssh_key() {
             return git2::Cred::ssh_key(
-                &repo_config.ssh_user.as_ref().unwrap(),
-                Option::from(Path::new(&repo_config.ssh_public_key.as_ref().unwrap())),
-                &Path::new(&repo_config.ssh_private_key.as_ref().unwrap()),
+                &repo_config.ssh_user.as_ref().unwrap_or(&"git".to_string()),
+                Option::from(Path::new(&repo_config.ssh_public_key.as_ref().unwrap_or(&"".to_string()))),
+                &Path::new(&repo_config.ssh_private_key.as_ref().unwrap_or(&"".to_string())),
                 repo_config.ssh_passphrase.as_ref().map(|x| &**x),
             )
         }

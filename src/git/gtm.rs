@@ -23,6 +23,7 @@ pub struct File {
     path: String,
     time_total: i64,
     timeline: HashMap<i64, i32>,
+    status: String,
     added_lines: i32,
     deleted_lines: i32,
 }
@@ -38,7 +39,7 @@ pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &
 
     for note in notes {
         let message = note.message().unwrap();
-        let mut files = parse_note_message(message);
+        let mut files = parse_note_message(message).unwrap_or(vec![]);
         let _diff = diff_parents(files.as_mut(), git_commit, repo);
         commit.files.append(files.as_mut());
     }
@@ -46,7 +47,7 @@ pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &
     return Ok(commit);
 }
 
-fn parse_note_message(message: &str) -> Vec<File> {
+fn parse_note_message(message: &str) -> Option<Vec<File>> {
     let mut version: String = "".to_string();
     let mut files: Vec<File> = Vec::new();
     let lines = message.split("\n");
@@ -57,13 +58,14 @@ fn parse_note_message(message: &str) -> Vec<File> {
             let matches: Vec<String> = NOTE_HEADER_VALS_REGEX.find_iter(line)
                 .filter_map(|d| d.as_str().parse().ok())
                 .collect();
-            version = matches.get(0).unwrap().clone();
+            version = matches.get(0)?.clone();
         }
 
         let mut file = File {
             path: "".to_string(),
             time_total: 0,
             timeline: HashMap::new(),
+            status: "".to_string(),
             added_lines: 0,
             deleted_lines: 0,
         };
@@ -74,16 +76,15 @@ fn parse_note_message(message: &str) -> Vec<File> {
                 continue;
             }
             for i in 0..field_groups.len() {
-                let fields: Vec<&str> = field_groups.get(i).unwrap().split(":").collect();
+                let fields: Vec<&str> = field_groups.get(i)?.split(":").collect();
                 if i == 0 && fields.len() == 2 {
-                    file.path = fields.get(0).unwrap().replace("->", ":");
-                    file.time_total = fields.get(1).unwrap().parse().unwrap();
+                    file.path = fields.get(0)?.replace("->", ":");
+                    file.time_total = fields.get(1)?.parse().unwrap_or(0);
                 } else if i == field_groups.len() - 1 && fields.len() == 1 {
-                    // todo: file status?
-                    continue;
+                    file.status = fields.get(0)?.to_string();
                 } else if fields.len() == 2 {
-                    let epoch_timeline: i64 = fields.get(0).unwrap().parse().unwrap();
-                    let epoch_total: i32 = fields.get(1).unwrap().parse().unwrap();
+                    let epoch_timeline: i64 = fields.get(0)?.parse().unwrap_or(0);
+                    let epoch_total: i32 = fields.get(1)?.parse().unwrap_or(0);
                     file.timeline.insert(epoch_timeline, epoch_total);
                 }
             }
@@ -105,12 +106,12 @@ fn parse_note_message(message: &str) -> Vec<File> {
             files.push(file);
         }
     }
-    return files;
+    return Option::from(files);
 }
 
 fn diff_parents(files: &mut Vec<File>, commit: &git2::Commit, repo: &git2::Repository) -> Result<(), git2::Error> {
     if commit.parent_count() == 0 {
-        // todo: first commit
+        // TODO: Figure out how to handle initial commit
         return Ok(());
     }
 
@@ -152,13 +153,14 @@ impl fmt::Display for Commit {
 
 impl fmt::Display for File {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:>2}h{:>3}m{:>3}s : {:<45} +{:<4} - {}",
+        write!(f, "{:>2}h{:>3}m{:>3}s : {:<45} +{:<4} - {:<4} {}",
                self.time_total / 3600,
                (self.time_total % 3600) / 60,
                self.time_total % 60,
                self.path,
                self.added_lines,
                self.deleted_lines,
+               self.status,
         )
     }
 }
