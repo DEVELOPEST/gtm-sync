@@ -1,5 +1,5 @@
 
-use serde_derive::{Serialize, Deserialize};
+use serde::{Serialize, Deserialize};
 use std::fs;
 
 #[derive(Serialize, Deserialize)]

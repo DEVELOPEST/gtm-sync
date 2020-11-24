@@ -3,11 +3,11 @@
 use std::fs;
 use std::path::Path;
 
-use git2::{Commit, Error, FetchOptions, Note, RemoteCallbacks, Repository};
+use git2::{Error, FetchOptions, Note, RemoteCallbacks, Repository};
 use git2::build::RepoBuilder;
 use crate::config;
 
-mod gtm;
+pub(crate) mod gtm;
 
 static GTM_NOTES_REF: &str = "refs/notes/gtm-data";
 static GTM_NOTES_REF_SPEC: &str = "+refs/notes/gtm-data:refs/notes/gtm-data";
@@ -79,8 +79,8 @@ pub fn fetch(repo: &Repository, repo_config: &config::Repository) {
     remote.disconnect().unwrap();
 }
 
-pub fn read_commits(repo: &Repository) -> Result<Vec<Commit>, Error> {
-    let commits : Vec<Commit> = Vec::new();
+pub fn read_commits(repo: &Repository) -> Result<Vec<gtm::Commit>, Error> {
+    let mut commits: Vec<gtm::Commit> = Vec::new();
     let mut revwalk = repo.revwalk().expect("Unable to revwalk!");
     let _sorting = revwalk.set_sorting(git2::Sort::TIME);
     let _head = revwalk.push_head();
@@ -94,7 +94,8 @@ pub fn read_commits(repo: &Repository) -> Result<Vec<Commit>, Error> {
             .collect();
 
         let res=  gtm::parse_commit(&repo, &commit, &notes)?;
-        println!("{}", res);
+        println!("{}", &res);
+        commits.push(res);
     }
     // let a = repo.notes(Option::from(GTM_NOTES_REF))
     //     .expect("Unable to find gtm-notes");

@@ -5,20 +5,24 @@ use git2::{DiffOptions, Note};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::export::Formatter;
+use serde::Serialize;
 
 lazy_static! {
     static ref NOTE_HEADER_REGEX: Regex = Regex::new("\\[ver:\\d+,total:\\d+]").unwrap();
     static ref NOTE_HEADER_VALS_REGEX: Regex = Regex::new("\\d+").unwrap();
 }
 
+#[derive(Serialize)]
 pub struct Commit {
     hash: String,
+    // branch: String,
     author_email: String,
     message: String,
     time: i64,
     files: Vec<File>,
 }
 
+#[derive(Serialize)]
 pub struct File {
     path: String,
     time_total: i64,
@@ -31,6 +35,7 @@ pub struct File {
 pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &[Note]) -> Result<Commit, git2::Error> {
     let mut commit = Commit {
         hash: git_commit.id().to_string(),
+        // branch: "".to_string(),
         author_email: git_commit.author().to_string(),
         message: git_commit.message().unwrap().to_string(),
         time: git_commit.time().seconds(), // todo: validate
