@@ -94,10 +94,8 @@ pub fn read_commits(repo: &Repository) -> Result<Vec<gtm::Commit>, Error> {
             .collect();
 
         let res=  gtm::parse_commit(&repo, &commit, &notes)?;
-        println!("{}", &res);
+        // println!("{}", &res);
         commits.push(res);
     }
-    // let a = repo.notes(Option::from(GTM_NOTES_REF))
-    //     .expect("Unable to find gtm-notes");
     return Result::Ok(commits);
 }

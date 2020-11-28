@@ -15,8 +15,8 @@ lazy_static! {
 #[derive(Serialize)]
 pub struct Commit {
     hash: String,
-    // branch: String,
-    author_email: String,
+    branch: String,
+    author: String,
     message: String,
     time: i64,
     files: Vec<File>,
@@ -35,8 +35,8 @@ pub struct File {
 pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &[Note]) -> Result<Commit, git2::Error> {
     let mut commit = Commit {
         hash: git_commit.id().to_string(),
-        // branch: "".to_string(),
-        author_email: git_commit.author().to_string(),
+        branch: "todo".to_string(),
+        author: git_commit.author().to_string(),
         message: git_commit.message().unwrap().to_string(),
         time: git_commit.time().seconds(), // todo: validate
         files: vec![],
@@ -145,7 +145,7 @@ fn diff_parents(files: &mut Vec<File>, commit: &git2::Commit, repo: &git2::Repos
 impl fmt::Display for Commit {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let _ = writeln!(f, "Commit: {}", self.hash);
-        let _ = writeln!(f, "Author: {}", self.author_email);
+        let _ = writeln!(f, "Author: {}", self.author);
         let _ = writeln!(f, "Time {}", self.time);
         let _ = writeln!(f, "{}", self.message);
 
