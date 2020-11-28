@@ -1,0 +1,7 @@
+[ver:1,total:840]
+src/gtm/gtm.rs:272,1606590000:272,m
+src/server/service.rs:223,1606590000:223,m
+.gtm/Cargo-> Run gtm-sync.app:198,1606590000:198,r
+src/dto/response.rs:77,1606590000:77,m
+src/gtm/git.rs:60,1606590000:60,m
+src/model/gtm.rs:10,1606590000:10,d
