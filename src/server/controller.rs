@@ -10,7 +10,7 @@ pub fn index() -> &'static str {
 
 #[get("/repository/<provider>/<user>/<repo>")]
 pub fn repo(provider: String, user: String, repo: String) -> JsonValue {
-    let repo = service::get_repo(); // TODO: How to match credentials?
+    let repo = service::get_repo(&provider, &user, &repo); // TODO: How to match credentials?
     rocket_contrib::json!(&repo)
 }
 

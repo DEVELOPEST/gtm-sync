@@ -5,21 +5,30 @@ use crate::config::config;
 use crate::dto::request::AddRepositoryDto;
 use crate::dto::response::{BoolResponseDto, Repo};
 use crate::gtm::git;
-use crate::gtm::gtm;
 
 lazy_static! {
     static ref PATH_FROM_URL_REGEX: Regex =
         Regex::new(r#"(git@|https://)([a-zA-Z0-9.]+)[:/]([a-zA-Z0-9-]+)/([a-zA-Z0-9-]+)\.git"#).unwrap();
 }
 
-pub fn get_repo() -> Repo {
+pub fn get_repo(provider: &String, user: &String, repo: &String) -> Repo {
     let loc = "./example_config.toml".to_string();
     let loaded_cfg = config::load(&loc);
-    let repo_to_clone = loaded_cfg.repositories.get(0).unwrap();
+    let repo_to_clone = loaded_cfg.repositories.iter()
+        .find(|r| r.path == generate_path_from_provider_user_repo(&provider, &user, &repo, &loaded_cfg.repositories_base_path));
+
+    if repo_to_clone.is_none() {
+        // TODO: Some error thingy
+        return Repo {
+            commits: vec![]
+        }
+    }
+    let repo_to_clone = repo_to_clone.unwrap();
+
     let repo = git::clone_or_open(&repo_to_clone).unwrap();
     let _res = git::fetch(&repo, &repo_to_clone);
     let commits = git::read_commits(&repo).unwrap();
-    let gtm_repo : Repo = Repo {
+    let gtm_repo: Repo = Repo {
         commits
     };
     return gtm_repo;
@@ -55,4 +64,15 @@ pub fn generate_path_from_git_url(url: &String, base_path: &String) -> String {
                        caps.get(4).map_or("repo", |m| m.as_str())
     );
     return path;
+}
+
+pub fn generate_path_from_provider_user_repo(
+    provider: &String,
+    user: &String,
+    repo: &String,
+    base_path: &String,
+) -> String {
+    return format!("{}/{}/{}/{}", base_path.trim_end_matches("/"),
+                   provider, user, repo
+    );
 }
