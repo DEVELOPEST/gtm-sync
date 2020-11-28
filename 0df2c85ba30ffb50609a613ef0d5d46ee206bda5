@@ -1,0 +1,13 @@
+[ver:1,total:1260]
+src/server/service.rs:445,1606503600:265,1606507200:180,m
+.gtm/Cargo-> Run gtm-sync.app:331,1606503600:298,1606590000:33,r
+src/main.rs:155,1606503600:23,1606590000:132,m
+src/gtm/git.rs:137,1606503600:59,1606590000:78,m
+src/server/mod.rs:51,1606590000:51,m
+src/server/server.rs:36,1606590000:36,m
+src/config/mod.rs:30,1606503600:30,m
+src/gtm/mod.rs:25,1606503600:25,m
+src/gtm/gtm.rs:20,1606503600:20,m
+src/config/config.rs:12,1606590000:12,m
+src/dto/request.rs:12,1606590000:12,m
+src/model/mod.rs:6,1606590000:6,m
