@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use crate::model::Repository;
+use crate::model::config::Repository;
 
 #[derive(Serialize, Deserialize)]
 pub struct AddRepositoryDto {

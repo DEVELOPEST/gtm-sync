@@ -1,11 +1,11 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use crate::config;
+use crate::config::config;
 use crate::dto::request::AddRepositoryDto;
 use crate::dto::response::BoolResponseDto;
-use crate::git;
-use crate::git::gtm;
+use crate::gtm::git;
+use crate::gtm::gtm;
 
 lazy_static! {
     static ref PATH_FROM_URL_REGEX: Regex =

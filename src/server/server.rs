@@ -1,6 +1,6 @@
 
-mod controller;
-mod service;
+use crate::server::controller;
+use crate::server::service;
 
 pub fn run() {
     rocket::ignite()

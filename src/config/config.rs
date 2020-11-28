@@ -1,5 +1,5 @@
 use std::fs;
-use crate::model::Config;
+use crate::model::config::Config;
 
 pub fn load(config_file: &String) -> Config {
     let content = fs::read_to_string(config_file).expect("Unable to read config!");

@@ -5,15 +5,15 @@ use std::path::Path;
 
 use git2::{Error, FetchOptions, Note, RemoteCallbacks, Repository};
 use git2::build::RepoBuilder;
-use crate::model;
+use crate::model::config;
 
-pub(crate) mod gtm;
+use crate::gtm::gtm;
 
 static GTM_NOTES_REF: &str = "refs/notes/gtm-data";
 static GTM_NOTES_REF_SPEC: &str = "+refs/notes/gtm-data:refs/notes/gtm-data";
 static DEFAULT_ORIGIN: &str = "origin";
 
-pub fn clone_or_open(repo_config: &model::Repository) -> Result<Repository, Error> {
+pub fn clone_or_open(repo_config: &config::Repository) -> Result<Repository, Error> {
     let path = Path::new(&repo_config.path);
 
     if path.exists() {
@@ -33,7 +33,7 @@ pub fn clone_or_open(repo_config: &model::Repository) -> Result<Repository, Erro
         .clone(&repo_config.url, Path::new(&repo_config.path));
 }
 
-fn generate_fetch_options(repo_config: &model::Repository) -> FetchOptions {
+fn generate_fetch_options(repo_config: &config::Repository) -> FetchOptions {
     let mut cb = RemoteCallbacks::new();
     let repo_config = repo_config.clone();
     cb.credentials(move |_c, _o, t| {
@@ -55,7 +55,7 @@ fn generate_fetch_options(repo_config: &model::Repository) -> FetchOptions {
 }
 
 
-pub fn fetch(repo: &Repository, repo_config: &model::Repository) {
+pub fn fetch(repo: &Repository, repo_config: &config::Repository) {
     let mut remote = repo.find_remote(DEFAULT_ORIGIN)
         .expect("Unable to find remote 'origin'");
     let mut ref_added = false;
