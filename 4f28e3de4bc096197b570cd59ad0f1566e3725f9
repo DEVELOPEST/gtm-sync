@@ -1,0 +1,6 @@
+[ver:1,total:1500]
+src/server/service.rs:1122,1606590000:210,1606593600:254,1606662000:658,m
+src/server/controller.rs:126,1606590000:126,m
+.gtm/Cargo-> Run gtm-sync.app:126,1606593600:46,1606662000:80,r
+src/dto/response.rs:102,1606662000:102,m
+src/server/server.rs:24,1606590000:24,m
