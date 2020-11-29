@@ -7,6 +7,7 @@ pub fn run() {
                routes![
                     controller::index,
                     controller::repo,
-                    controller::add_repo],
+                    controller::add_repo,
+                    controller::sync],
         ).launch();
 }

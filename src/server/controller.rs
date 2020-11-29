@@ -19,3 +19,8 @@ pub fn add_repo(repo: Json<AddRepositoryDto>) -> JsonValue {
     let response = service::add_repo(repo.into_inner());
     rocket_contrib::json!(&response)
 }
+
+#[get("/sync")]
+pub fn sync() -> JsonValue {
+    rocket_contrib::json!("{}")
+}
