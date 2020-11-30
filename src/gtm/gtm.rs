@@ -32,10 +32,10 @@ pub struct File {
     deleted_lines: i32,
 }
 
-pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &[Note]) -> Result<Commit, git2::Error> {
+pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &[Note], git_branch: String) -> Result<Commit, git2::Error> {
     let mut commit = Commit {
         hash: git_commit.id().to_string(),
-        branch: "todo".to_string(),
+        branch: git_branch,
         author: git_commit.author().to_string(),
         message: git_commit.message().unwrap().to_string(),
         time: git_commit.time().seconds(), // todo: validate

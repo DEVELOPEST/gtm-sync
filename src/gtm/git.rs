@@ -3,11 +3,11 @@
 use std::fs;
 use std::path::Path;
 
-use git2::{Error, FetchOptions, Note, RemoteCallbacks, Repository};
+use git2::{BranchType, Error, FetchOptions, Note, RemoteCallbacks, Repository};
 use git2::build::RepoBuilder;
-use crate::model::config;
 
 use crate::gtm::gtm;
+use crate::model::config;
 
 static GTM_NOTES_REF: &str = "refs/notes/gtm-data";
 static GTM_NOTES_REF_SPEC: &str = "+refs/notes/gtm-data:refs/notes/gtm-data";
@@ -48,7 +48,6 @@ fn generate_fetch_options(repo_config: &config::Repository) -> FetchOptions {
         return git2::Cred::default();
     });
 
-
     let mut fo = FetchOptions::new();
     fo.remote_callbacks(cb);
     return fo;
@@ -73,17 +72,42 @@ pub fn fetch(repo: &Repository, repo_config: &config::Repository) {
             .expect("Unable to find remote 'origin'");
     }
 
+    let branches = repo.branches(Option::from(BranchType::Remote)).unwrap();
+    let mut fetch_refs: Vec<String> = vec![];
+    for branch in branches {
+        let (branch, _) = branch.unwrap();
+        let refspec = branch.get()
+            .name()
+            .unwrap()
+            .strip_prefix("refs/remotes/origin/")
+            .unwrap();
+        if refspec != "HEAD" {
+            fetch_refs.push(format!("refs/heads/{}", refspec.to_string()));
+        }
+    }
+    fetch_refs.push(GTM_NOTES_REF.parse().unwrap());
+
     let mut fo = generate_fetch_options(repo_config);
-    remote.fetch(&[] as &[&str], Option::from(&mut fo), None)
+    remote.fetch(&fetch_refs, Option::from(&mut fo), None)
         .expect("Error fetching data!");
     remote.disconnect().unwrap();
 }
 
 pub fn read_commits(repo: &Repository) -> Result<Vec<gtm::Commit>, Error> {
     let mut commits: Vec<gtm::Commit> = Vec::new();
+    //let mut hashes: HashSet<String> = HashSet::new();
     let mut revwalk = repo.revwalk().expect("Unable to revwalk!");
     let _sorting = revwalk.set_sorting(git2::Sort::TIME);
-    let _head = revwalk.push_head();
+    let branches = repo.branches(Option::from(BranchType::Remote)).unwrap();
+    for branch in branches {
+        let (branch, _) = branch.unwrap();
+        let refspec = branch.get().name().unwrap();
+        if refspec == "refs/remotes/origin/HEAD" {
+            continue
+        }
+        let _ = revwalk.push_ref(refspec);
+    }
+    // let _head = revwalk.push_glob("refs/heads/*");
     for commit_oid in revwalk {
         let commit_oid = commit_oid?;
         let commit = repo.find_commit(commit_oid)?;
@@ -93,7 +117,7 @@ pub fn read_commits(repo: &Repository) -> Result<Vec<gtm::Commit>, Error> {
             .map(|n| repo.find_note(Option::from(GTM_NOTES_REF), n.1).unwrap())
             .collect();
 
-        let res=  gtm::parse_commit(&repo, &commit, &notes)?;
+        let res = gtm::parse_commit(&repo, &commit, &notes, "".to_string())?;
         // println!("{}", &res);
         commits.push(res);
     }
