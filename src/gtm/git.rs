@@ -56,7 +56,6 @@ fn generate_fetch_options(repo_config: &config::Repository) -> FetchOptions {
     return fo;
 }
 
-
 pub fn fetch(repo: &Repository, repo_config: &config::Repository) {
     let mut remote = repo.find_remote(DEFAULT_ORIGIN)
         .expect("Unable to find remote 'origin'");
@@ -103,6 +102,7 @@ pub fn read_commits(repo: &Repository) -> Result<Vec<gtm::Commit>, Error> {
     revwalk.set_sorting(git2::Sort::TOPOLOGICAL).expect("Unable to set revwalk sorting!");
     revwalk.set_sorting(git2::Sort::REVERSE).expect("Unable to reverse revalk sorting!");
     let branches = repo.branches(Option::from(BranchType::Remote)).unwrap();
+    let default_branch = repo.head().unwrap().name().unwrap().to_string();
     for branch in branches {
         let (branch, _) = branch.unwrap();
         let refspec = branch.get().name().unwrap();
@@ -121,7 +121,7 @@ pub fn read_commits(repo: &Repository) -> Result<Vec<gtm::Commit>, Error> {
         let commit = repo.find_commit(commit_oid)?;
         let mut branch = "".to_string(); // TODO: Some more intelligent choice than last wins
         for (oid, name) in &branch_map {
-            if repo.merge_base(commit_oid, *oid).unwrap() == commit_oid && branch != "master" {
+            if repo.merge_base(commit_oid, *oid).unwrap() == commit_oid && branch != default_branch {
                 branch = name.clone();
             }
         }
