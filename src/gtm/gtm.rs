@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fmt;
 
 use git2::{DiffOptions, Note};
@@ -26,10 +25,16 @@ pub struct Commit {
 pub struct File {
     path: String,
     time_total: i64,
-    timeline: HashMap<i64, i32>,
+    timeline: Vec<TimelineEntry>,
     status: String,
     added_lines: i32,
     deleted_lines: i32,
+}
+
+#[derive(Serialize, Copy, Clone)]
+pub struct TimelineEntry {
+    timestamp: i64,
+    time: i64,
 }
 
 pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &[Note], git_branch: String) -> Result<Commit, git2::Error> {
@@ -69,7 +74,7 @@ fn parse_note_message(message: &str) -> Option<Vec<File>> {
         let mut file = File {
             path: "".to_string(),
             time_total: 0,
-            timeline: HashMap::new(),
+            timeline: vec![],
             status: "".to_string(),
             added_lines: 0,
             deleted_lines: 0,
@@ -89,8 +94,11 @@ fn parse_note_message(message: &str) -> Option<Vec<File>> {
                     file.status = fields.get(0)?.to_string();
                 } else if fields.len() == 2 {
                     let epoch_timeline: i64 = fields.get(0)?.parse().unwrap_or(0);
-                    let epoch_total: i32 = fields.get(1)?.parse().unwrap_or(0);
-                    file.timeline.insert(epoch_timeline, epoch_total);
+                    let epoch_total: i64 = fields.get(1)?.parse().unwrap_or(0);
+                    file.timeline.push(TimelineEntry {
+                        timestamp: epoch_timeline,
+                        time: epoch_total,
+                    });
                 }
             }
         } else {
@@ -101,8 +109,8 @@ fn parse_note_message(message: &str) -> Option<Vec<File>> {
         for mut added_file in files.iter_mut() {
             if added_file.path == file.path {
                 added_file.time_total += file.time_total;
-                for (epoch, secs) in &file.timeline {
-                    added_file.timeline.insert(*epoch, *secs);
+                for timeline_entry in &file.timeline {
+                    added_file.timeline.push(timeline_entry.clone());
                 }
                 found = true;
             }

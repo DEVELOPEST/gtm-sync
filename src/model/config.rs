@@ -5,6 +5,8 @@ pub struct Config {
     pub target_host: String,
     pub target_port: Option<u16>,
     pub port: Option<u16>,
+    pub address: Option<String>,
+    pub access_token: Option<String>,
     pub repositories_base_path: String,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub repositories: Vec<Repository>,

@@ -3,7 +3,7 @@ use regex::Regex;
 
 use crate::config::config;
 use crate::dto::request::AddRepositoryDto;
-use crate::dto::response::{AddRepoDto, RepoDto};
+use crate::dto::response::{AddRepoDto, RepoDto, RepoWrapperDto};
 use crate::gtm::git;
 
 lazy_static! {
@@ -13,26 +13,33 @@ lazy_static! {
     static ref CONFIG_PATH: String = "./example_config.toml".to_string();
 }
 
-pub fn get_repo(provider: &String, user: &String, repo: &String) -> RepoDto {
+pub fn get_repo(provider: &String, user: &String, repo: &String) -> RepoWrapperDto {
     let cfg = config::load(&CONFIG_PATH);
     let repo_to_clone = cfg.repositories.iter()
         .find(|r| r.path == generate_path_from_provider_user_repo(&provider, &user, &repo, &cfg.repositories_base_path));
 
     if repo_to_clone.is_none() {
         // TODO: Some error thingy
-        return RepoDto {
-            commits: vec![]
-        }
+        return RepoWrapperDto {
+            repository: None
+        };
     }
     let repo_to_clone = repo_to_clone.unwrap();
 
-    let repo = git::clone_or_open(&repo_to_clone).unwrap();
-    let _res = git::fetch(&repo, &repo_to_clone);
-    let commits = git::read_commits(&repo).unwrap();
+    let git_repo = git::clone_or_open(&repo_to_clone).unwrap();
+    let _res = git::fetch(&git_repo, &repo_to_clone);
+    let commits = git::read_commits(&git_repo).unwrap();
     let gtm_repo: RepoDto = RepoDto {
+        provider: provider.clone(),
+        user: user.clone(),
+        repo: repo.clone(),
+        sync_url: format!("{}:{}", cfg.address.unwrap_or("localhost".to_string()), cfg.port.unwrap_or(8000)),
+        access_token: cfg.access_token,
         commits
     };
-    return gtm_repo;
+    return RepoWrapperDto {
+        repository: Option::from(gtm_repo)
+    };
 }
 
 pub fn add_repo(repo_dto: AddRepositoryDto) -> AddRepoDto {
