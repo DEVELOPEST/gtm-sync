@@ -2,6 +2,7 @@ use rocket_contrib::json::{JsonValue, Json};
 
 use crate::server::service;
 use crate::dto::request::AddRepositoryDto;
+use crate::server::sync::sync_all;
 
 #[get("/")]
 pub fn index() -> &'static str {
@@ -22,5 +23,7 @@ pub fn add_repo(repo: Json<AddRepositoryDto>) -> JsonValue {
 
 #[get("/sync")]
 pub fn sync() -> JsonValue {
+    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(sync_all());
     rocket_contrib::json!("{}")
 }
