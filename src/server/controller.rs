@@ -2,7 +2,7 @@ use rocket_contrib::json::{JsonValue, Json};
 
 use crate::server::service;
 use crate::dto::request::AddRepositoryDto;
-use crate::server::sync::sync_all;
+use crate::sync::sync::sync_all;
 
 #[get("/")]
 pub fn index() -> &'static str {

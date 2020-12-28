@@ -6,6 +6,7 @@ mod server;
 mod dto;
 mod gtm;
 mod config;
+mod sync;
 
 fn main() {
     server::server::run();

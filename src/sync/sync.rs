@@ -3,10 +3,10 @@ use crate::config::repository::generate_credentials_from_clone_url;
 use crate::dto::response::{RepoDto, RepoWrapperDto};
 use crate::gtm::git;
 
-pub async fn sync_all() -> bool {
+pub async fn sync_all() -> i32 {
     let cfg = config::load(&config::CONFIG_PATH);
     let client = reqwest::Client::new();
-
+    let mut synced_count = 0;
 
     for repo in &cfg.repositories {
         let git_repo = git::clone_or_open(&repo).unwrap();
@@ -25,15 +25,22 @@ pub async fn sync_all() -> bool {
             repository: Option::from(gtm_repo)
         };
 
-        let _res = client.post(&cfg.get_target_url()) // TODO: provider / user / repo
-            .body(serde_json::to_string(&dto).unwrap())
+        let res = client.post(&generate_repo_sync_url(&cfg.get_target_url()))
+            .json(&dto)
             .send()
             .await;
+        if res.is_ok() {
+            synced_count += 1;
+        } // TODO: Handle error
     }
 
-    return true;
+    return synced_count;
 }
 
 pub fn sync_single() -> bool {
     false
+}
+
+fn generate_repo_sync_url(target_host: &String) -> String {
+    return format!("{}/api/repositories", target_host)
 }
