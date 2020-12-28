@@ -1,0 +1,10 @@
+[ver:1,total:1980]
+.gtm/Cargo-> Run gtm-sync.app:1247,1609146000:1247,r
+src/sync/sync.rs:419,1609146000:419,m
+src/config/config.rs:180,1608706800:180,r
+src/server/controller.rs:68,1609146000:68,m
+src/main.rs:19,1609146000:19,m
+.gtm/Cargo-> build.app:18,1609146000:18,r
+src/server/mod.rs:17,1609146000:17,m
+src/sync/mod.rs:8,1609146000:8,m
+example_config.toml:4,1609146000:4,r
