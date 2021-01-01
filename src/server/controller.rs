@@ -24,6 +24,6 @@ pub fn add_repo(repo: Json<AddRepositoryDto>) -> JsonValue {
 #[get("/sync")]
 pub fn sync() -> JsonValue {
     let mut rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(sync_all());
-    rocket_contrib::json!("{}")
+    let response = rt.block_on(sync_all());
+    rocket_contrib::json!(&response)
 }

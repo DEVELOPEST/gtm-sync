@@ -13,7 +13,7 @@ lazy_static! {
 
 #[derive(Serialize)]
 pub struct Commit {
-    hash: String,
+    pub hash: String,
     branch: String,
     author: String,
     message: String,
