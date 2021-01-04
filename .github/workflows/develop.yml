@@ -30,12 +30,7 @@ jobs:
         with:
           command: build
           args: --package gtm-sync --bin gtm-sync --release
-      - name: test
-        run: |
-          ls
-          cd target
-          ls
       - uses: actions/upload-artifact@v2
         with:
           name: gtm-sync
-          path: ./target/gtm-sync
+          path: ./target/release/gtm-sync
