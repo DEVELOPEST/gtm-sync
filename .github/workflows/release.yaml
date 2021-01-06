@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version'
+        required: true
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    env:
+      APP_NAME: 'gtm-sync'
+      MAINTAINER: 'DEVELOPEST'
+      DESC: 'gtm-sync client for linux'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+      - name: Run cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --package gtm-sync --bin gtm-sync --release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: gtm-sync
+          path: ./target/release/gtm-sync
+      - name: Prepare deb package
+        run: |
+          mkdir -p .debpkg/usr/bin
+          cp ./target/release/gtm-sync .debpkg/usr/bin
+          chmod +x .debpkg/usr/bin
+      - name: Build deb package
+        uses: jiro4989/build-deb-action@v2
+        with:
+          package: ${{ env.APP_NAME }}
+          package_root: .debpkg
+          maintainer: ${{ env.MAINTAINER }}
+          version: ${{ github.event.inputs.release_version }}
+          arch: 'amd64'
+          desc: ${{ env.DESC }}
+      - name: Upload deb package
+        uses: actions/upload-artifact@v2
+        with:
+          name: gtm-sync-debian
+          path: |
+            ./*.deb
