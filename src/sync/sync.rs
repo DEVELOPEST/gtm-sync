@@ -12,6 +12,12 @@ pub struct SyncAllResult {
     synced_count: i32,
 }
 
+#[derive(Serialize)]
+pub struct SyncSingleResult {
+    error: Option<String>,
+    ok: bool,
+}
+
 #[derive(Deserialize)]
 pub struct LastSyncResponse {
     hash: String,
@@ -24,39 +30,13 @@ pub async fn sync_all() -> SyncAllResult {
     let client = reqwest::Client::new();
     let mut result = SyncAllResult { error: None, synced_count: 0 };
 
-    for repo in &cfg.repositories {
-        let git_repo = git::clone_or_open(&repo).unwrap();
-        let _res = git::fetch(&git_repo, &repo);
-        let last_sync = fetch_synced_hashes(&client, &repo)
-            .await
-            .unwrap_or(LastSyncResponse {
-                hash: "".to_string(),
-                timestamp: 0,
-                tracked_commit_hashes: vec![],
-            });
-        let commits = git::read_commits(&git_repo)
-            .unwrap()
-            .into_iter()
-            .filter(|c| !last_sync.tracked_commit_hashes.contains(&c.hash))
-            .collect();
+    let tasks: Vec<_> = cfg.repositories
+        .iter()
+        .map(|repo| sync_single(&repo, &cfg, &client))
+        .collect();
 
-        let (provider, user, repo) = generate_credentials_from_clone_url(&repo.url);
-        let gtm_repo: RepoDto = RepoDto {
-            provider: provider.clone(),
-            user: user.clone(),
-            repo: repo.clone(),
-            sync_url: cfg.get_sync_url(),
-            access_token: cfg.access_token.clone(),
-            commits,
-        };
-        let dto = RepoWrapperDto {
-            repository: Option::from(gtm_repo)
-        };
-
-        let res = client.post(&generate_repo_sync_url(&cfg.get_target_url()))
-            .json(&dto)
-            .send()
-            .await;
+    for task in tasks {
+        let res = task.await;
         if res.is_ok() {
             result.synced_count += 1;
         } else {
@@ -67,8 +47,61 @@ pub async fn sync_all() -> SyncAllResult {
     return result;
 }
 
-pub fn sync_single() -> bool {
-    false
+pub async fn sync_repo(provider: &String, user: &String, repo: &String) -> SyncSingleResult {
+    let cfg = config::load(&config::CONFIG_PATH);
+    let client = reqwest::Client::new();
+
+    let repo_to_sync = cfg.repositories.iter()
+        .find(|&r| r.path == cfg.generate_path_from_provider_user_repo(&provider, &user, &repo));
+    if repo_to_sync.is_none() {
+        return SyncSingleResult { error: Option::from("No matching repository found!".to_string()), ok: false }
+    }
+    let repo_to_sync = repo_to_sync.unwrap();
+    let res = sync_single(&repo_to_sync, &cfg, &client).await;
+
+    if res.is_err() {
+        return SyncSingleResult { error: Option::from("Error syncing repo!".to_string()), ok: false }
+    }
+    return SyncSingleResult { error: None, ok: true }
+}
+
+async fn sync_single(
+    repo: &Repository,
+    cfg: &config::Config,
+    client: &reqwest::Client,
+) -> Result<reqwest::Response, reqwest::Error> {
+    let git_repo = git::clone_or_open(&repo).unwrap();
+    let _res = git::fetch(&git_repo, &repo);
+    let last_sync = fetch_synced_hashes(&client, &repo)
+        .await
+        .unwrap_or(LastSyncResponse {
+            hash: "".to_string(),
+            timestamp: 0,
+            tracked_commit_hashes: vec![],
+        });
+    let commits = git::read_commits(&git_repo)
+        .unwrap()
+        .into_iter()
+        .filter(|c| !last_sync.tracked_commit_hashes.contains(&c.hash))
+        .collect();
+
+    let (provider, user, repo) = generate_credentials_from_clone_url(&repo.url);
+    let gtm_repo: RepoDto = RepoDto {
+        provider: provider.clone(),
+        user: user.clone(),
+        repo: repo.clone(),
+        sync_url: cfg.get_sync_url(),
+        access_token: cfg.access_token.clone(),
+        commits,
+    };
+    let dto = RepoWrapperDto {
+        repository: Option::from(gtm_repo)
+    };
+
+    return client.post(&generate_repo_sync_url(&cfg.get_target_url()))
+        .json(&dto)
+        .send()
+        .await;
 }
 
 fn generate_repo_sync_url(target_host: &String) -> String {

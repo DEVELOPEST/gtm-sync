@@ -7,7 +7,7 @@ lazy_static! {
         Regex::new(r#"(git@|https://)([a-zA-Z0-9.]+)[:/]([a-zA-Z0-9-]+)/([a-zA-Z0-9-]+)\.git"#).unwrap();
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Repository {
     pub url: String,
     pub path: String,
