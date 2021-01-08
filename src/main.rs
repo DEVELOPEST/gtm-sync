@@ -7,6 +7,7 @@ mod dto;
 mod gtm;
 mod config;
 mod sync;
+mod repo;
 
 fn main() {
     server::server::run();
