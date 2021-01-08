@@ -1,0 +1,10 @@
+[ver:1,total:3840]
+src/sync/sync.rs:2609,1610128800:1460,1610132400:1149,m
+.gtm/Cargo-> Build `Run gtm-sync`.app:407,1610128800:240,1610132400:167,r
+src/server/controller.rs:338,1610128800:292,1610132400:46,m
+.github/workflows/develop.yml:180,1609938000:180,d
+.gtm/Cargo-> Run gtm-sync.app:116,1610132400:116,r
+src/config/repository.rs:70,1610132400:70,m
+src/config/config.rs:60,1610128800:60,r
+src/server/server.rs:48,1610128800:36,1610132400:12,m
+src/server/service.rs:12,1610128800:12,r
