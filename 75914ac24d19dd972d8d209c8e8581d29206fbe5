@@ -1,0 +1,8 @@
+[ver:1,total:300]
+src/sync/sync.rs:140,1610132400:140,r
+src/server/service.rs:60,1610132400:60,d
+src/repo/mod.rs:30,1610132400:30,m
+.gtm/Cargo-> Build `Run gtm-sync`.app:20,1610132400:20,r
+src/server/mod.rs:20,1610132400:20,m
+src/server/controller.rs:15,1610132400:15,m
+src/main.rs:15,1610132400:15,m
