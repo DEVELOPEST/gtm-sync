@@ -1,0 +1,9 @@
+[ver:1,total:540]
+src/server/controller.rs:208,1610179200:208,m
+src/repo/repo_manager.rs:157,1610179200:157,m
+src/dto/request.rs:52,1610179200:52,d
+src/sync/sync.rs:42,1610179200:42,m
+.gtm/Cargo-> Build `Run gtm-sync`.app:36,1610179200:36,r
+src/dto/response.rs:24,1610179200:24,d
+.gtm/Cargo-> Run gtm-sync.app:12,1610179200:12,r
+src/main.rs:9,1610179200:9,m
