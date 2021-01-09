@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::config::config;
 use crate::config::repository::{generate_credentials_from_clone_url, Repository};
-use crate::dto::response::{RepoDto, RepoWrapperDto};
 use crate::gtm::git;
+use crate::repo::repo_manager::{RepoDto, RepoWrapperDto};
 
 #[derive(Serialize)]
 pub struct SyncAllResult {

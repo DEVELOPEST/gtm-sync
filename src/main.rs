@@ -3,7 +3,6 @@
 #[macro_use] extern crate rocket;
 
 mod server;
-mod dto;
 mod gtm;
 mod config;
 mod sync;

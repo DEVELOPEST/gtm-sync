@@ -1,9 +1,57 @@
+use serde::{Deserialize, Serialize};
 
 use crate::config::config;
-use crate::dto::request::AddRepositoryDto;
-use crate::dto::response::{AddRepoDto, RepoDto, RepoWrapperDto};
-use crate::gtm::git;
 use crate::config::repository::generate_credentials_from_clone_url;
+use crate::config::repository::Repository;
+use crate::gtm::git;
+use crate::gtm::gtm::Commit;
+
+#[derive(Serialize, Deserialize)]
+pub struct AddRepositoryDto {
+    pub url: String,
+    pub ssh_private_key: Option<String>,
+    pub ssh_public_key: Option<String>,
+    pub ssh_user: Option<String>,
+    pub ssh_passphrase: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct AddRepoDto {
+    pub success: bool,
+    pub provider: Option<String>,
+    pub user: Option<String>,
+    pub repo: Option<String>,
+    pub message: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct RepoDto {
+    pub provider: String,
+    pub user: String,
+    pub repo: String,
+    pub sync_url: String,
+    pub access_token: Option<String>,
+    pub commits: Vec<Commit>,
+}
+
+#[derive(Serialize)]
+pub struct RepoWrapperDto {
+    pub repository: Option<RepoDto>,
+    // TODO: Errors
+}
+
+impl AddRepositoryDto {
+    pub fn to_repository(&self, f: &dyn Fn(&String) -> String) -> Repository {
+        return Repository {
+            url: self.url.clone(),
+            path: f(&self.url.to_string()),
+            ssh_private_key: self.ssh_private_key.clone(),
+            ssh_public_key: self.ssh_public_key.clone(),
+            ssh_user: self.ssh_user.clone(),
+            ssh_passphrase: self.ssh_passphrase.clone(),
+        }
+    }
+}
 
 pub fn get_repo(provider: &String, user: &String, repo: &String) -> RepoWrapperDto {
     let cfg = config::load(&config::CONFIG_PATH);
