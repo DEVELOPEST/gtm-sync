@@ -1,0 +1,10 @@
+[ver:1,total:5280]
+.gtm/Cargo-> Run gtm-sync.app:3810,1610449200:3000,1610452800:810,r
+src/gtm/git.rs:708,1610452800:708,m
+src/config/config.rs:210,1610452800:210,m
+src/gtm/gtm.rs:180,1610179200:180,r
+src/repo/repo_manager.rs:117,1610452800:117,m
+example_config.toml:98,1610452800:98,r
+src/server/controller.rs:90,1610452800:90,r
+.gtm/Cargo-> Build `Run gtm-sync`.app:38,1610452800:38,r
+src/sync/sync.rs:29,1610452800:29,m
