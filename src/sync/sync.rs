@@ -1,10 +1,11 @@
-use reqwest::Client;
+use reqwest::{Client, Method};
 use serde::{Deserialize, Serialize};
 
 use crate::config::config;
 use crate::config::repository::{generate_credentials_from_clone_url, Repository};
 use crate::gtm::git;
 use crate::repo::repo_manager::{RepoDto, RepoWrapperDto};
+use crate::gtm::gtm::Commit;
 
 #[derive(Serialize)]
 pub struct SyncAllResult {
@@ -76,16 +77,22 @@ async fn sync_single(
         .await
         .unwrap_or(LastSyncResponse {
             hash: "".to_string(),
-            timestamp: 0,
+            timestamp: -1,
             tracked_commit_hashes: vec![],
         });
-    let commits = git::read_commits(&git_repo)
-        .unwrap()
-        .into_iter()
-        .filter(|c| !last_sync.tracked_commit_hashes.contains(&c.hash))
-        .collect();
-
+    let mut commits: Vec<Commit> = git::read_commits(&git_repo).unwrap();
+    let commit_hashes: Vec<String> = commits.iter().map(|c| c.hash.clone()).collect();
     let (provider, user, repo) = generate_credentials_from_clone_url(&repo.url);
+
+    let mut method = Method::POST;
+    if last_sync.timestamp > 0 && last_sync.tracked_commit_hashes.iter()
+            .all(|h| commit_hashes.contains(h)) {
+        commits = commits.into_iter()
+            .filter(|c| !last_sync.tracked_commit_hashes.contains(&c.hash))
+            .collect();
+        method = Method::PUT;
+    }
+
     let gtm_repo: RepoDto = RepoDto {
         provider: provider.clone(),
         user: user.clone(),
@@ -98,7 +105,7 @@ async fn sync_single(
         repository: Option::from(gtm_repo)
     };
 
-    return client.post(&generate_repo_sync_url(&cfg.get_target_url()))
+    return client.request(method, &generate_repo_sync_url(&cfg.get_target_url()))
         .json(&dto)
         .send()
         .await;

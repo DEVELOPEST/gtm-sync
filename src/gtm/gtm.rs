@@ -3,8 +3,8 @@ use std::fmt;
 use git2::{DiffOptions, Note};
 use lazy_static::lazy_static;
 use regex::Regex;
-use serde::export::Formatter;
 use serde::Serialize;
+use std::fmt::Formatter;
 
 lazy_static! {
     static ref NOTE_HEADER_REGEX: Regex = Regex::new("\\[ver:\\d+,total:\\d+]").unwrap();
