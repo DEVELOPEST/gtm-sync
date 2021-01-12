@@ -72,7 +72,7 @@ async fn sync_single(
 ) -> Result<reqwest::Response, reqwest::Error> {
     let git_repo = git::clone_or_open(&repo, &cfg).unwrap();
     let _res = git::fetch(&git_repo, &repo, &cfg);
-    let last_sync = fetch_synced_hashes(&client, &repo)
+    let last_sync = fetch_synced_hashes(&client, &repo, &cfg.get_target_url())
         .await
         .unwrap_or(LastSyncResponse {
             hash: "".to_string(),
@@ -108,9 +108,13 @@ fn generate_repo_sync_url(target_host: &String) -> String {
     return format!("{}/api/repositories", target_host)
 }
 
-async fn fetch_synced_hashes(client: &Client, repo: &Repository) -> Result<LastSyncResponse, reqwest::Error> {
+async fn fetch_synced_hashes(
+    client: &Client,
+    repo: &Repository,
+    target_host: &str
+) -> Result<LastSyncResponse, reqwest::Error> {
     let (provider, user, repo) = generate_credentials_from_clone_url(&repo.url);
-    let url = format!("/commits/{}/{}/{}/hash", provider, user, repo);
+    let url = format!("{}/api/commits/{}/{}/{}/hash", target_host, provider, user, repo);
 
     return Ok(client.get(&url)
         .send()

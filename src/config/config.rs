@@ -12,8 +12,8 @@ lazy_static! {
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    pub target_host: String,
-    pub target_port: Option<u16>,
+    target_host: String,
+    target_port: Option<u16>,
     pub port: Option<u16>,
     pub address: Option<String>,
     pub access_token: Option<String>,
