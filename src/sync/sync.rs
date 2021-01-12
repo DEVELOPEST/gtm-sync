@@ -70,8 +70,8 @@ async fn sync_single(
     cfg: &config::Config,
     client: &reqwest::Client,
 ) -> Result<reqwest::Response, reqwest::Error> {
-    let git_repo = git::clone_or_open(&repo).unwrap();
-    let _res = git::fetch(&git_repo, &repo);
+    let git_repo = git::clone_or_open(&repo, &cfg).unwrap();
+    let _res = git::fetch(&git_repo, &repo, &cfg);
     let last_sync = fetch_synced_hashes(&client, &repo)
         .await
         .unwrap_or(LastSyncResponse {

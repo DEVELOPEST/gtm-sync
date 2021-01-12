@@ -9,6 +9,7 @@ use git2::build::RepoBuilder;
 
 use crate::gtm::gtm;
 use crate::config::repository;
+use crate::config::config::Config;
 
 static GTM_NOTES_REF: &str = "refs/notes/gtm-data";
 static GTM_NOTES_REF_SPEC: &str = "+refs/notes/gtm-data:refs/notes/gtm-data";
@@ -16,7 +17,7 @@ static DEFAULT_ORIGIN: &str = "origin";
 static ORIGIN_PREFIX: &str = "refs/remotes/origin/";
 static ORIGIN_HEAD: &str = "refs/remotes/origin/HEAD";
 
-pub fn clone_or_open(repo_config: &repository::Repository) -> Result<Repository, Error> {
+pub fn clone_or_open(repo_config: &repository::Repository, cfg: &Config) -> Result<Repository, Error> {
     let path = Path::new(&repo_config.path);
 
     if path.exists() {
@@ -26,26 +27,30 @@ pub fn clone_or_open(repo_config: &repository::Repository) -> Result<Repository,
         }
         let _remove = fs::remove_dir_all(&path)
             .expect(&*format!("Unable to remove dir: {}", repo_config.path));
-        return clone_or_open(&repo_config);
+        return clone_or_open(&repo_config, &cfg);
     }
 
-    let fo = generate_fetch_options(repo_config);
+    let fo = generate_fetch_options(&repo_config, &cfg);
 
     return RepoBuilder::new()
         .fetch_options(fo)
         .clone(&repo_config.url, Path::new(&repo_config.path));
 }
 
-fn generate_fetch_options(repo_config: &repository::Repository) -> FetchOptions {
+fn generate_fetch_options<'a>(repo_config: &'a repository::Repository, cfg: &'a Config) -> FetchOptions<'a> {
     let mut cb = RemoteCallbacks::new();
     let repo_config = repo_config.clone();
     cb.credentials(move |_c, _o, t| {
         if t.is_ssh_key() {
             return git2::Cred::ssh_key(
-                &repo_config.ssh_user.as_ref().unwrap_or(&"git".to_string()),
-                Option::from(Path::new(&repo_config.ssh_public_key.as_ref().unwrap_or(&"".to_string()))),
-                &Path::new(&repo_config.ssh_private_key.as_ref().unwrap_or(&"".to_string())),
-                repo_config.ssh_passphrase.as_ref().map(|x| &**x),
+                &repo_config.ssh_user.as_ref()
+                    .unwrap_or(cfg.ssh_user.as_ref().unwrap_or(&"git".to_string())),
+                Option::from(Path::new(&repo_config.ssh_public_key.as_ref()
+                    .unwrap_or(cfg.ssh_public_key.as_ref().unwrap_or(&"".to_string())))),
+                &Path::new(&repo_config.ssh_private_key.as_ref()
+                    .unwrap_or(cfg.ssh_private_key.as_ref().unwrap_or(&"".to_string()))),
+                repo_config.ssh_passphrase.as_ref()
+                    .or(cfg.ssh_passphrase.as_ref()).map(|x| &**x),
             )
         }
         return git2::Cred::default();
@@ -56,7 +61,7 @@ fn generate_fetch_options(repo_config: &repository::Repository) -> FetchOptions 
     return fo;
 }
 
-pub fn fetch(repo: &Repository, repo_config: &repository::Repository) {
+pub fn fetch(repo: &Repository, repo_config: &repository::Repository, cfg: &Config) {
     let mut remote = repo.find_remote(DEFAULT_ORIGIN)
         .expect("Unable to find remote 'origin'");
     let mut ref_added = false;
@@ -89,7 +94,7 @@ pub fn fetch(repo: &Repository, repo_config: &repository::Repository) {
     }
     fetch_refs.push(GTM_NOTES_REF.parse().unwrap());
 
-    let mut fo = generate_fetch_options(repo_config);
+    let mut fo = generate_fetch_options(repo_config, cfg);
     remote.fetch(&fetch_refs, Option::from(&mut fo), None)
         .expect("Error fetching data!");
     remote.disconnect().unwrap();

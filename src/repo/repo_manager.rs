@@ -66,8 +66,8 @@ pub fn get_repo(provider: &String, user: &String, repo: &String) -> RepoWrapperD
     }
     let repo_to_clone = repo_to_clone.unwrap();
 
-    let git_repo = git::clone_or_open(&repo_to_clone).unwrap();
-    let _res = git::fetch(&git_repo, &repo_to_clone);
+    let git_repo = git::clone_or_open(&repo_to_clone, &cfg).unwrap();
+    let _res = git::fetch(&git_repo, &repo_to_clone, &cfg);
     let commits = git::read_commits(&git_repo).unwrap();
     let gtm_repo: RepoDto = RepoDto {
         provider: provider.clone(),
@@ -85,7 +85,7 @@ pub fn get_repo(provider: &String, user: &String, repo: &String) -> RepoWrapperD
 pub fn add_repo(repo_dto: AddRepositoryDto) -> AddRepoDto {
     let mut cfg = config::load(&config::CONFIG_PATH);
     let repo = repo_dto.to_repository(&|url: &String| { cfg.generate_path_from_git_url(url) });
-    let cloned_repo = git::clone_or_open(&repo);
+    let cloned_repo = git::clone_or_open(&repo, &cfg);
     if cloned_repo.is_ok() {
         let (provider, user, repository) = generate_credentials_from_clone_url(&repo.url);
         if !cfg.repositories.iter().any(|r| r.url == repo_dto.url) {
