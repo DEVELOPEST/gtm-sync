@@ -1,0 +1,4 @@
+[ver:1,total:3180]
+.gtm/Cargo-> Run gtm-sync.app:1791,1610452800:447,1610456400:1344,r
+src/sync/sync.rs:1278,1610452800:33,1610456400:1245,m
+.gtm/Cargo-> Build `Run gtm-sync`.app:111,1610456400:111,r
