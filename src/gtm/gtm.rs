@@ -1,14 +1,13 @@
 use std::fmt;
+use std::fmt::Formatter;
 
 use git2::{DiffOptions, Note};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::Serialize;
-use std::fmt::Formatter;
 
 lazy_static! {
-    static ref NOTE_HEADER_REGEX: Regex = Regex::new("\\[ver:\\d+,total:\\d+]").unwrap();
-    static ref NOTE_HEADER_VALS_REGEX: Regex = Regex::new("\\d+").unwrap();
+    static ref NOTE_HEADER_REGEX: Regex = Regex::new("\\[ver:(\\d+),total:(\\d+)(\\s*|,branch:([^]]+))]").unwrap();
 }
 
 #[derive(Serialize)]
@@ -37,10 +36,10 @@ pub struct TimelineEntry {
     time: i64,
 }
 
-pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &[Note], git_branch: String) -> Result<Commit, git2::Error> {
+pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &[Note]) -> Result<Commit, git2::Error> {
     let mut commit = Commit {
         hash: git_commit.id().to_string(),
-        branch: git_branch,
+        branch: "".to_string(),
         author: git_commit.author().to_string(),
         message: git_commit.message().unwrap().to_string(),
         time: git_commit.time().seconds(), // todo: validate
@@ -49,26 +48,29 @@ pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &
 
     for note in notes {
         let message = note.message().unwrap();
-        let mut files = parse_note_message(message).unwrap_or(vec![]);
+        let (mut files, branch) = parse_note_message(message)
+            .unwrap_or((vec![], "".to_string()));
         let _diff = diff_parents(files.as_mut(), git_commit, repo);
         commit.files.append(files.as_mut());
+        commit.branch = branch;
     }
 
     return Ok(commit);
 }
 
-fn parse_note_message(message: &str) -> Option<Vec<File>> {
+fn parse_note_message(message: &str) -> Option<(Vec<File>, String)> {
     let mut version: String = "".to_string();
+    let mut branch: String = "".to_string();
     let mut files: Vec<File> = Vec::new();
     let lines = message.split("\n");
     for line in lines {
         if line.trim() == "" {
             version = "".to_string();
         } else if NOTE_HEADER_REGEX.is_match(line) {
-            let matches: Vec<String> = NOTE_HEADER_VALS_REGEX.find_iter(line)
-                .filter_map(|d| d.as_str().parse().ok())
-                .collect();
-            version = matches.get(0)?.clone();
+            let matches = NOTE_HEADER_REGEX.captures(line)?;
+
+            version = matches.get(1)?.as_str().to_string();
+            branch = matches.get(3)?.as_str().to_string();
         }
 
         let mut file = File {
@@ -119,7 +121,7 @@ fn parse_note_message(message: &str) -> Option<Vec<File>> {
             files.push(file);
         }
     }
-    return Option::from(files);
+    return Option::from((files, branch));
 }
 
 fn diff_parents(files: &mut Vec<File>, commit: &git2::Commit, repo: &git2::Repository) -> Result<(), git2::Error> {
