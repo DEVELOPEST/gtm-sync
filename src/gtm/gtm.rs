@@ -1,37 +1,47 @@
-use std::collections::HashMap;
 use std::fmt;
 
 use git2::{DiffOptions, Note};
 use lazy_static::lazy_static;
 use regex::Regex;
-use serde::export::Formatter;
+use serde::Serialize;
+use std::fmt::Formatter;
 
 lazy_static! {
     static ref NOTE_HEADER_REGEX: Regex = Regex::new("\\[ver:\\d+,total:\\d+]").unwrap();
     static ref NOTE_HEADER_VALS_REGEX: Regex = Regex::new("\\d+").unwrap();
 }
 
+#[derive(Serialize)]
 pub struct Commit {
-    hash: String,
-    author_email: String,
-    message: String,
-    time: i64,
-    files: Vec<File>,
+    pub hash: String,
+    pub branch: String,
+    pub author: String,
+    pub message: String,
+    pub time: i64,
+    pub files: Vec<File>,
 }
 
+#[derive(Serialize)]
 pub struct File {
-    path: String,
-    time_total: i64,
-    timeline: HashMap<i64, i32>,
-    status: String,
-    added_lines: i32,
-    deleted_lines: i32,
+    pub path: String,
+    pub time_total: i64,
+    pub timeline: Vec<TimelineEntry>,
+    pub status: String,
+    pub added_lines: i32,
+    pub deleted_lines: i32,
 }
 
-pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &[Note]) -> Result<Commit, git2::Error> {
+#[derive(Serialize, Copy, Clone)]
+pub struct TimelineEntry {
+    pub timestamp: i64,
+    pub time: i64,
+}
+
+pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &[Note], git_branch: String) -> Result<Commit, git2::Error> {
     let mut commit = Commit {
         hash: git_commit.id().to_string(),
-        author_email: git_commit.author().to_string(),
+        branch: git_branch,
+        author: git_commit.author().to_string(),
         message: git_commit.message().unwrap().to_string(),
         time: git_commit.time().seconds(), // todo: validate
         files: vec![],
@@ -64,7 +74,7 @@ fn parse_note_message(message: &str) -> Option<Vec<File>> {
         let mut file = File {
             path: "".to_string(),
             time_total: 0,
-            timeline: HashMap::new(),
+            timeline: vec![],
             status: "".to_string(),
             added_lines: 0,
             deleted_lines: 0,
@@ -84,8 +94,11 @@ fn parse_note_message(message: &str) -> Option<Vec<File>> {
                     file.status = fields.get(0)?.to_string();
                 } else if fields.len() == 2 {
                     let epoch_timeline: i64 = fields.get(0)?.parse().unwrap_or(0);
-                    let epoch_total: i32 = fields.get(1)?.parse().unwrap_or(0);
-                    file.timeline.insert(epoch_timeline, epoch_total);
+                    let epoch_total: i64 = fields.get(1)?.parse().unwrap_or(0);
+                    file.timeline.push(TimelineEntry {
+                        timestamp: epoch_timeline,
+                        time: epoch_total,
+                    });
                 }
             }
         } else {
@@ -96,8 +109,8 @@ fn parse_note_message(message: &str) -> Option<Vec<File>> {
         for mut added_file in files.iter_mut() {
             if added_file.path == file.path {
                 added_file.time_total += file.time_total;
-                for (epoch, secs) in &file.timeline {
-                    added_file.timeline.insert(*epoch, *secs);
+                for timeline_entry in &file.timeline {
+                    added_file.timeline.push(timeline_entry.clone());
                 }
                 found = true;
             }
@@ -140,7 +153,7 @@ fn diff_parents(files: &mut Vec<File>, commit: &git2::Commit, repo: &git2::Repos
 impl fmt::Display for Commit {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let _ = writeln!(f, "Commit: {}", self.hash);
-        let _ = writeln!(f, "Author: {}", self.author_email);
+        let _ = writeln!(f, "Author: {}", self.author);
         let _ = writeln!(f, "Time {}", self.time);
         let _ = writeln!(f, "{}", self.message);
 
