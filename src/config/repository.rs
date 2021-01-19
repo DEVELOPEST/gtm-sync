@@ -17,11 +17,6 @@ pub struct Repository {
     pub ssh_passphrase: Option<String>,
 }
 
-// pub fn generate_path_from_git_url(url: &String, base_path: &String) -> String {
-//     let (provider, user, repo) = generate_credentials_from_clone_url(url);
-//     return format!("{}/{}/{}/{}", base_path.trim_end_matches("/"), provider, user, repo);
-// }
-
 pub fn generate_credentials_from_clone_url(url: &String) -> (String, String, String) {
     let caps = PATH_FROM_URL_REGEX.captures(url).unwrap();
     return (caps.get(2).map_or("provider".to_string(), |m| m.as_str().to_string()),

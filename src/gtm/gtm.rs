@@ -14,27 +14,27 @@ lazy_static! {
 #[derive(Serialize)]
 pub struct Commit {
     pub hash: String,
-    branch: String,
-    author: String,
-    message: String,
-    time: i64,
-    files: Vec<File>,
+    pub branch: String,
+    pub author: String,
+    pub message: String,
+    pub time: i64,
+    pub files: Vec<File>,
 }
 
 #[derive(Serialize)]
 pub struct File {
-    path: String,
-    time_total: i64,
-    timeline: Vec<TimelineEntry>,
-    status: String,
-    added_lines: i32,
-    deleted_lines: i32,
+    pub path: String,
+    pub time_total: i64,
+    pub timeline: Vec<TimelineEntry>,
+    pub status: String,
+    pub added_lines: i32,
+    pub deleted_lines: i32,
 }
 
 #[derive(Serialize, Copy, Clone)]
 pub struct TimelineEntry {
-    timestamp: i64,
-    time: i64,
+    pub timestamp: i64,
+    pub time: i64,
 }
 
 pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &[Note], git_branch: String) -> Result<Commit, git2::Error> {
