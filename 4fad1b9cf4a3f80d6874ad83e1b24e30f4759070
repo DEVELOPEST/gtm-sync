@@ -1,0 +1,7 @@
+[ver:1,total:480,branch:release/v0.1.0]
+src/config/config.rs:170,1611338400:170,r
+src/main.rs:150,1611338400:90,1611342000:60,r
+Cargo.toml:85,1611338400:85,r
+.gtm/Cargo-> Build `Run gtm-sync`.app:30,1611338400:30,r
+.gtm/Cargo-> Run gtm-sync.app:30,1611338400:30,r
+src/gtm/gtm.rs:15,1611338400:15,r
