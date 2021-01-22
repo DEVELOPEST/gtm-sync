@@ -12,7 +12,8 @@ pub fn repo(provider: String, user: String, repo: String) -> JsonValue {
 
 #[post("/repositories", data="<repo>")]
 pub fn add_repo(repo: Json<AddRepositoryDto>) -> JsonValue {
-    let response = repo_manager::add_repo(repo.into_inner());
+    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let response = rt.block_on(repo_manager::add_repo(repo.into_inner()));
     rocket_contrib::json!(&response)
 }
 

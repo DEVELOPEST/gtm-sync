@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::config::repository::{generate_credentials_from_clone_url, Repository};
 
 lazy_static! {
-    pub static ref CONFIG_PATH: String = "./example_config.toml".to_string();
+    pub static ref CONFIG_PATH: String = "./config.toml".to_string();
 }
 
 

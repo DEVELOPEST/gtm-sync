@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 lazy_static! {
     static ref PATH_FROM_URL_REGEX: Regex =
-        Regex::new(r#"(git@|https://)([a-zA-Z0-9.]+)[:/]([a-zA-Z0-9-]+)/([a-zA-Z0-9-]+)\.git"#).unwrap();
+        Regex::new(r#"(git@|https://)([a-zA-Z0-9.]+)[:/]([a-zA-Z0-9-_/.]+)/([a-zA-Z0-9-._]+)\.git"#).unwrap();
 }
 
 #[derive(Serialize, Deserialize, Clone)]

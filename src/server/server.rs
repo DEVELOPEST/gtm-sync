@@ -3,7 +3,7 @@ use crate::server::controller;
 
 pub fn run() {
     rocket::ignite()
-        .mount("/",
+        .mount("/services/gtm/sync//",
                routes![
                     controller::repo,
                     controller::add_repo,

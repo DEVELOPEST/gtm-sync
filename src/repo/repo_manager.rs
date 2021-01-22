@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::config::config;
+use crate::sync::sync;
 use crate::config::repository::generate_credentials_from_clone_url;
 use crate::config::repository::Repository;
 use crate::gtm::git;
@@ -82,7 +83,7 @@ pub fn get_repo(provider: &String, user: &String, repo: &String) -> RepoWrapperD
     };
 }
 
-pub fn add_repo(repo_dto: AddRepositoryDto) -> AddRepoDto {
+pub async fn add_repo(repo_dto: AddRepositoryDto) -> AddRepoDto {
     let mut cfg = config::load(&config::CONFIG_PATH);
     let repo = repo_dto.to_repository(&|url: &String| { cfg.generate_path_from_git_url(url) });
     let cloned_repo = git::clone_or_open(&repo, &cfg);
@@ -92,6 +93,7 @@ pub fn add_repo(repo_dto: AddRepositoryDto) -> AddRepoDto {
             cfg.repositories.push(repo);
             config::save(&config::CONFIG_PATH, &cfg);
         }
+        sync::sync_repo(&provider, &user, &repository).await;
         return AddRepoDto {
             success: true,
             provider: Option::from(provider),
