@@ -1,0 +1,9 @@
+[ver:1,total:2460,branch:develop]
+README.md:420,1611345600:180,1611396000:240,m
+src/repo/repo_manager.rs:400,1611396000:400,m
+src/server/controller.rs:370,1611396000:370,m
+src/config/config.rs:360,1611342000:360,m
+Rocket.toml:246,1611342000:240,1611396000:6,m
+example_config.toml:240,1611342000:240,d
+.gtm/Cargo-> Run gtm-sync.app:234,1611396000:234,r
+.gtm/Cargo-> Build `Run gtm-sync`.app:190,1611342000:180,1611396000:10,r
