@@ -1,1 +1,12 @@
 [ver:1,total:0,branch:release/v0.1.0]
+
+[ver:1,total:4620,branch:release/v0.1.0]
+.gtm/Cargo-> Run gtm-sync.app:3769,1611136800:2389,1611140400:1380,r
+Cargo.toml:180,1611129600:180,r
+src/gtm/gtm.rs:180,1611219600:180,r
+src/sync/sync.rs:180,1611086400:180,r
+src/server/controller.rs:120,1611086400:120,r
+src/config/config.rs:100,1611338400:100,m
+.gtm/Cargo-> Build `Run gtm-sync`.app:87,1611086400:60,1611136800:7,1611338400:20,r
+example_config.toml:2,1611136800:2,r
+src/repo/repo_manager.rs:2,1611136800:2,r
