@@ -1,0 +1,6 @@
+[ver:1,total:540,branch:hotfix/SYNC-20]
+src/sync/sync.rs:360,1611583200:360,m
+.gtm/Cargo-> Run gtm-sync.app:75,1611640800:75,r
+src/server/controller.rs:67,1611640800:67,m
+src/server/server.rs:31,1611640800:31,m
+.gtm/Cargo-> Build `Run gtm-sync`.app:7,1611640800:7,r
