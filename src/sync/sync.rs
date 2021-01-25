@@ -80,7 +80,7 @@ async fn sync_single(
             timestamp: -1,
             tracked_commit_hashes: vec![],
         });
-    let mut commits: Vec<Commit> = git::read_commits(&git_repo).unwrap();
+    let mut commits: Vec<Commit> = git::read_commits(&git_repo).unwrap_or(vec![]);
     let commit_hashes: Vec<String> = commits.iter().map(|c| c.hash.clone()).collect();
     let (provider, user, repo) = generate_credentials_from_clone_url(&repo.url);
 

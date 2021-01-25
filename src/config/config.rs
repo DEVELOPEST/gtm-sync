@@ -14,8 +14,10 @@ lazy_static! {
 pub struct Config {
     target_host: String,
     target_port: Option<u16>,
+    target_prefix: Option<String>,
     pub port: Option<u16>,
     pub address: Option<String>,
+    pub prefix: Option<String>,
     pub access_token: Option<String>,
     pub ssh_public_key: Option<String>,
     pub ssh_private_key: Option<String>,
@@ -38,13 +40,18 @@ pub fn save(config_file: &String, config: &Config) {
 
 impl Config {
     pub fn get_target_url(&self) -> String {
-        return format!("{}:{}", self.target_host, self.target_port.unwrap_or(8000));
+        return format!("{}:{}{}",
+                       self.target_host,
+                       self.target_port.unwrap_or(8000),
+                       self.target_prefix.as_ref().unwrap_or(&"".to_string())
+        );
     }
 
     pub fn get_sync_url(&self) -> String {
-        return format!("{}:{}",
+        return format!("{}:{}{}",
                        self.address.clone().unwrap_or("localhost".to_string()),
-                       self.port.clone().unwrap_or(8000)
+                       self.port.clone().unwrap_or(8000),
+                       self.prefix.as_ref().unwrap_or(&"".to_string())
         );
     }
 
