@@ -1,0 +1,6 @@
+[ver:1,total:1560,branch:hotfix/SYNC-20]
+src/gtm/git.rs:829,1611752400:420,1611774000:409,m
+.gtm/Cargo-> Run gtm-sync.app:584,1611774000:584,r
+.gtm/Cargo-> Build `Run gtm-sync`.app:85,1611774000:85,r
+src/sync/sync.rs:42,1611774000:42,r
+src/main.rs:20,1611774000:20,r
