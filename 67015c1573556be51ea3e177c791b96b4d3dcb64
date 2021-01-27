@@ -1,0 +1,6 @@
+[ver:1,total:480,branch:hotfix/SYNC-20]
+src/gtm/git.rs:180,1611745200:180,m
+src/sync/sync.rs:130,1611745200:130,m
+src/server/controller.rs:80,1611745200:80,m
+src/gtm/gtm.rs:60,1611745200:60,m
+src/repo/repo_manager.rs:30,1611745200:30,m
