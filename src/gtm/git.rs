@@ -10,8 +10,8 @@ use crate::gtm::gtm;
 
 static GTM_NOTES_REF: &str = "refs/notes/gtm-data";
 static GTM_NOTES_REF_SPEC: &str = "+refs/notes/gtm-data:refs/notes/gtm-data";
+static FETCH_REF_SPEC: &str = "+refs/heads/*:refs/remotes/origin/*";
 static DEFAULT_ORIGIN: &str = "origin";
-static ORIGIN_PREFIX: &str = "refs/remotes/origin/";
 static ORIGIN_HEAD: &str = "refs/remotes/origin/HEAD";
 
 pub fn clone_or_open(repo_config: &repository::Repository, cfg: &Config) -> Result<Repository, Error> {
@@ -77,23 +77,12 @@ pub fn fetch(repo: &Repository, repo_config: &repository::Repository, cfg: &Conf
             .expect("Unable to find remote 'origin'");
     }
 
-    let branches = repo.branches(Option::from(BranchType::Remote)).unwrap();
     let mut fetch_refs: Vec<String> = vec![];
-    for branch in branches {
-        let (branch, _) = branch?;
-        let refspec = branch.get()
-            .name()
-            .unwrap()
-            .strip_prefix(ORIGIN_PREFIX)
-            .unwrap();
-        if refspec != "HEAD" {
-            fetch_refs.push(format!("refs/heads/{}", refspec.to_string()));
-        }
-        info!("Fetch ref: {}", refspec)
-    }
-    fetch_refs.push(GTM_NOTES_REF.parse().unwrap());
+    fetch_refs.push(GTM_NOTES_REF_SPEC.parse().unwrap());
+    fetch_refs.push(FETCH_REF_SPEC.parse().unwrap());
 
     let mut fo = generate_fetch_options(repo_config, cfg);
+
     remote.fetch(&fetch_refs, Option::from(&mut fo), None)?;
     remote.update_tips(None, true, AutotagOption::Unspecified, None)?;
     remote.disconnect()?;
