@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use git2::{BranchType, Error, FetchOptions, Note, RemoteCallbacks, Repository};
+use git2::{BranchType, Error, FetchOptions, Note, RemoteCallbacks, Repository, AutotagOption};
 use git2::build::RepoBuilder;
 
 use crate::config::config::Config;
@@ -89,11 +89,13 @@ pub fn fetch(repo: &Repository, repo_config: &repository::Repository, cfg: &Conf
         if refspec != "HEAD" {
             fetch_refs.push(format!("refs/heads/{}", refspec.to_string()));
         }
+        info!("Fetch ref: {}", refspec)
     }
     fetch_refs.push(GTM_NOTES_REF.parse().unwrap());
 
     let mut fo = generate_fetch_options(repo_config, cfg);
     remote.fetch(&fetch_refs, Option::from(&mut fo), None)?;
+    remote.update_tips(None, true, AutotagOption::Unspecified, None)?;
     remote.disconnect()?;
     Ok(())
 }
