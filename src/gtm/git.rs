@@ -1,14 +1,12 @@
-#![deny(warnings)]
-
 use std::fs;
 use std::path::Path;
 
 use git2::{BranchType, Error, FetchOptions, Note, RemoteCallbacks, Repository};
 use git2::build::RepoBuilder;
 
-use crate::gtm::gtm;
-use crate::config::repository;
 use crate::config::config::Config;
+use crate::config::repository;
+use crate::gtm::gtm;
 
 static GTM_NOTES_REF: &str = "refs/notes/gtm-data";
 static GTM_NOTES_REF_SPEC: &str = "+refs/notes/gtm-data:refs/notes/gtm-data";
@@ -24,8 +22,9 @@ pub fn clone_or_open(repo_config: &repository::Repository, cfg: &Config) -> Resu
         if repo.is_ok() {
             return repo;
         }
-        let _remove = fs::remove_dir_all(&path)
-            .expect(&*format!("Unable to remove dir: {}", repo_config.path));
+        if fs::remove_dir_all(&path).is_err() {
+            warn!("Unable to remove dir: {}", repo_config.path);
+        }
         return clone_or_open(&repo_config, &cfg);
     }
 
@@ -72,7 +71,7 @@ pub fn fetch(repo: &Repository, repo_config: &repository::Repository, cfg: &Conf
     }
     if !ref_added {
         if repo.remote_add_fetch(DEFAULT_ORIGIN, GTM_NOTES_REF_SPEC).is_err() {
-            println!("Unable to add fetch ref spec for gtm-data!")
+            warn!("Unable to add fetch ref spec for gtm-data!");
         }
         remote = repo.find_remote(DEFAULT_ORIGIN)
             .expect("Unable to find remote 'origin'");
@@ -111,7 +110,9 @@ pub fn read_commits(repo: &Repository) -> Result<Vec<gtm::Commit>, Error> {
         if refspec == ORIGIN_HEAD {
             continue
         }
-        let _ = revwalk.push_ref(refspec);
+        if revwalk.push_ref(refspec).is_err() {
+            warn!("Error adding refspec to revwalk: {}", refspec);
+        }
     }
 
     for commit_oid in revwalk {
@@ -130,5 +131,6 @@ pub fn read_commits(repo: &Repository) -> Result<Vec<gtm::Commit>, Error> {
         let res = gtm::parse_commit(&repo, &commit, &notes)?;
         commits.push(res);
     }
+    info!("Commits: {}", commits.len());
     return Result::Ok(commits);
 }

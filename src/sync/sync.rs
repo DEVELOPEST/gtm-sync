@@ -72,7 +72,11 @@ async fn sync_single(
     client: &reqwest::Client,
 ) -> Result<reqwest::Response, reqwest::Error> {
     let git_repo = git::clone_or_open(&repo, &cfg).unwrap();
-    let _res = git::fetch(&git_repo, &repo, &cfg);
+    let res = git::fetch(&git_repo, &repo, &cfg);
+    if res.is_err() {
+        warn!("Error fetching git data: {}", res.err().unwrap().message())
+    }
+
     let last_sync = fetch_synced_hashes(&client, &repo, &cfg.get_target_url())
         .await
         .unwrap_or(LastSyncResponse {

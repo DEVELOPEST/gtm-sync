@@ -68,7 +68,9 @@ pub fn get_repo(provider: &String, user: &String, repo: &String) -> RepoWrapperD
     let repo_to_clone = repo_to_clone.unwrap();
 
     let git_repo = git::clone_or_open(&repo_to_clone, &cfg).unwrap();
-    let _res = git::fetch(&git_repo, &repo_to_clone, &cfg);
+    if git::fetch(&git_repo, &repo_to_clone, &cfg).is_err() {
+        warn!("Error fetching git data!");
+    }
     let commits = git::read_commits(&git_repo).unwrap_or(vec![]);
     let gtm_repo: RepoDto = RepoDto {
         provider: provider.clone(),

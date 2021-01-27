@@ -52,7 +52,7 @@ pub fn parse_commit(repo: &git2::Repository, git_commit: &git2::Commit, notes: &
             .unwrap_or((vec![], "".to_string()));
         let _diff = diff_parents(files.as_mut(), git_commit, repo);
         commit.files.append(files.as_mut());
-        commit.branch = branch.strip_prefix(",branch: ").unwrap_or("").to_string();
+        commit.branch = branch.strip_prefix(",branch:").unwrap_or("").to_string();
     }
 
     return Ok(commit);
@@ -71,6 +71,7 @@ fn parse_note_message(message: &str) -> Option<(Vec<File>, String)> {
 
             version = matches.get(1)?.as_str().to_string();
             branch = matches.get(3)?.as_str().to_string();
+            continue;
         }
 
         let mut file = File {
