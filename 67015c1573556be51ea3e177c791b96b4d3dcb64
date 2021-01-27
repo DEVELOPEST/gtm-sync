@@ -4,3 +4,12 @@ src/sync/sync.rs:130,1611745200:130,m
 src/server/controller.rs:80,1611745200:80,m
 src/gtm/gtm.rs:60,1611745200:60,m
 src/repo/repo_manager.rs:30,1611745200:30,m
+
+[ver:1,total:1440,branch:hotfix/SYNC-20]
+.gtm/Cargo-> Run gtm-sync.app:341,1611691200:180,1611741600:161,r
+src/gtm/git.rs:327,1611741600:327,m
+src/repo/repo_manager.rs:312,1611734400:240,1611741600:72,m
+src/main.rs:200,1611741600:200,m
+src/gtm/gtm.rs:180,1611741600:180,m
+.gtm/Cargo-> Build `Run gtm-sync`.app:50,1611741600:50,r
+Cargo.toml:30,1611741600:30,m
