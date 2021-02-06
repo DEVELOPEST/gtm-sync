@@ -39,7 +39,9 @@ pub async fn sync_all() -> SyncAllResult {
     for task in tasks {
         let res = task.await;
         if res.is_ok() {
-            result.synced_count += 1;
+            if res.unwrap().status().is_success() {
+                result.synced_count += 1;
+            }
         } else {
             result.error = Option::from(res.err().unwrap().to_string())
         }
@@ -59,8 +61,8 @@ pub async fn sync_repo(provider: &String, user: &String, repo: &String) -> SyncS
     }
     let repo_to_sync = repo_to_sync.unwrap();
     let res = sync_single(&repo_to_sync, &cfg, &client).await;
-
-    if res.is_err() {
+    // TODO: Check for error in json
+    if res.is_err() || !res.unwrap().status().is_success() {
         return SyncSingleResult { error: Option::from("Error syncing repo!".to_string()), ok: false }
     }
     return SyncSingleResult { error: None, ok: true }
@@ -111,6 +113,7 @@ async fn sync_single(
 
     return client.request(method, &generate_repo_sync_url(&cfg.get_target_url()))
         .json(&dto)
+        .header("API-key", cfg.access_token.clone().unwrap_or("".to_string()))
         .send()
         .await;
 }
