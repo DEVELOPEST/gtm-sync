@@ -1,19 +1,17 @@
-#![deny(warnings)]
-
 use std::fs;
 use std::path::Path;
 
-use git2::{BranchType, Error, FetchOptions, Note, RemoteCallbacks, Repository};
+use git2::{BranchType, Error, FetchOptions, Note, RemoteCallbacks, Repository, AutotagOption};
 use git2::build::RepoBuilder;
 
-use crate::gtm::gtm;
-use crate::config::repository;
 use crate::config::config::Config;
+use crate::config::repository;
+use crate::gtm::gtm;
 
 static GTM_NOTES_REF: &str = "refs/notes/gtm-data";
 static GTM_NOTES_REF_SPEC: &str = "+refs/notes/gtm-data:refs/notes/gtm-data";
+static FETCH_REF_SPEC: &str = "+refs/heads/*:refs/remotes/origin/*";
 static DEFAULT_ORIGIN: &str = "origin";
-static ORIGIN_PREFIX: &str = "refs/remotes/origin/";
 static ORIGIN_HEAD: &str = "refs/remotes/origin/HEAD";
 
 pub fn clone_or_open(repo_config: &repository::Repository, cfg: &Config) -> Result<Repository, Error> {
@@ -24,8 +22,9 @@ pub fn clone_or_open(repo_config: &repository::Repository, cfg: &Config) -> Resu
         if repo.is_ok() {
             return repo;
         }
-        let _remove = fs::remove_dir_all(&path)
-            .expect(&*format!("Unable to remove dir: {}", repo_config.path));
+        if fs::remove_dir_all(&path).is_err() {
+            warn!("Unable to remove dir: {}", repo_config.path);
+        }
         return clone_or_open(&repo_config, &cfg);
     }
 
@@ -60,11 +59,10 @@ fn generate_fetch_options<'a>(repo_config: &'a repository::Repository, cfg: &'a 
     return fo;
 }
 
-pub fn fetch(repo: &Repository, repo_config: &repository::Repository, cfg: &Config) {
-    let mut remote = repo.find_remote(DEFAULT_ORIGIN)
-        .expect("Unable to find remote 'origin'");
+pub fn fetch(repo: &Repository, repo_config: &repository::Repository, cfg: &Config) -> Result<(), git2::Error>{
+    let mut remote = repo.find_remote(DEFAULT_ORIGIN)?;
     let mut ref_added = false;
-    let refs = remote.fetch_refspecs().unwrap();
+    let refs = remote.fetch_refspecs()?;
     for i in 0..refs.len() {
         if refs.get(i).unwrap() == GTM_NOTES_REF_SPEC {
             ref_added = true;
@@ -72,31 +70,23 @@ pub fn fetch(repo: &Repository, repo_config: &repository::Repository, cfg: &Conf
         }
     }
     if !ref_added {
-        repo.remote_add_fetch(DEFAULT_ORIGIN, GTM_NOTES_REF_SPEC)
-            .expect("Unable to add fetch ref spec for gtm-data!");
+        if repo.remote_add_fetch(DEFAULT_ORIGIN, GTM_NOTES_REF_SPEC).is_err() {
+            warn!("Unable to add fetch ref spec for gtm-data!");
+        }
         remote = repo.find_remote(DEFAULT_ORIGIN)
             .expect("Unable to find remote 'origin'");
     }
 
-    let branches = repo.branches(Option::from(BranchType::Remote)).unwrap();
     let mut fetch_refs: Vec<String> = vec![];
-    for branch in branches {
-        let (branch, _) = branch.unwrap();
-        let refspec = branch.get()
-            .name()
-            .unwrap()
-            .strip_prefix(ORIGIN_PREFIX)
-            .unwrap();
-        if refspec != "HEAD" {
-            fetch_refs.push(format!("refs/heads/{}", refspec.to_string()));
-        }
-    }
-    fetch_refs.push(GTM_NOTES_REF.parse().unwrap());
+    fetch_refs.push(GTM_NOTES_REF_SPEC.parse().unwrap());
+    fetch_refs.push(FETCH_REF_SPEC.parse().unwrap());
 
     let mut fo = generate_fetch_options(repo_config, cfg);
-    remote.fetch(&fetch_refs, Option::from(&mut fo), None)
-        .expect("Error fetching data!");
-    remote.disconnect().unwrap();
+
+    remote.fetch(&fetch_refs, Option::from(&mut fo), None)?;
+    remote.update_tips(None, true, AutotagOption::Unspecified, None)?;
+    remote.disconnect()?;
+    Ok(())
 }
 
 pub fn read_commits(repo: &Repository) -> Result<Vec<gtm::Commit>, Error> {
@@ -104,27 +94,34 @@ pub fn read_commits(repo: &Repository) -> Result<Vec<gtm::Commit>, Error> {
     let mut revwalk = repo.revwalk().expect("Unable to revwalk!");
     revwalk.set_sorting(git2::Sort::TOPOLOGICAL).expect("Unable to set revwalk sorting!");
     revwalk.set_sorting(git2::Sort::REVERSE).expect("Unable to reverse revalk sorting!");
-    let branches = repo.branches(Option::from(BranchType::Remote)).unwrap();
+    let branches = repo.branches(Option::from(BranchType::Remote))?;
     for branch in branches {
-        let (branch, _) = branch.unwrap();
+        let (branch, _) = branch?;
         let refspec = branch.get().name().unwrap();
         if refspec == ORIGIN_HEAD {
             continue
         }
-        let _ = revwalk.push_ref(refspec);
+        if revwalk.push_ref(refspec).is_err() {
+            warn!("Error adding refspec to revwalk: {}", refspec);
+        }
     }
 
     for commit_oid in revwalk {
         let commit_oid = commit_oid?;
         let commit = repo.find_commit(commit_oid)?;
-        let notes: Vec<Note> = repo.notes(Option::from(GTM_NOTES_REF))?
-            .map(|n| n.unwrap())
-            .filter(|n| n.1 == commit_oid)
-            .map(|n| repo.find_note(Option::from(GTM_NOTES_REF), n.1).unwrap())
-            .collect();
+        let raw_notes = repo.notes(Option::from(GTM_NOTES_REF)).ok();
+        let notes: Vec<Note> = if raw_notes.is_some() {
+            raw_notes.unwrap()
+                .filter_map(|n| n.ok())
+                .filter(|n| n.1 == commit_oid)
+                .map(|n| repo.find_note(Option::from(GTM_NOTES_REF), n.1))
+                .filter_map(|r| r.ok())
+                .collect()
+        } else { vec![] };
 
         let res = gtm::parse_commit(&repo, &commit, &notes)?;
         commits.push(res);
     }
+    info!("Commits: {}", commits.len());
     return Result::Ok(commits);
 }

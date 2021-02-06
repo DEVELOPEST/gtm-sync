@@ -30,3 +30,8 @@ pub fn sync_repo(provider: String, user: String, repo: String) -> JsonValue {
     let response = rt.block_on(sync::sync_repo(&provider, &user, &repo));
     rocket_contrib::json!(&response)
 }
+
+#[post("/repositories/<provider>/<user>/<repo>/sync")]
+pub fn post_sync_repo(provider: String, user: String, repo: String) -> JsonValue {
+    sync_repo(provider, user, repo)
+}

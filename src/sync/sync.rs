@@ -72,7 +72,11 @@ async fn sync_single(
     client: &reqwest::Client,
 ) -> Result<reqwest::Response, reqwest::Error> {
     let git_repo = git::clone_or_open(&repo, &cfg).unwrap();
-    let _res = git::fetch(&git_repo, &repo, &cfg);
+    let res = git::fetch(&git_repo, &repo, &cfg);
+    if res.is_err() {
+        warn!("Error fetching git data: {}", res.err().unwrap().message())
+    }
+
     let last_sync = fetch_synced_hashes(&client, &repo, &cfg.get_target_url())
         .await
         .unwrap_or(LastSyncResponse {
@@ -80,7 +84,7 @@ async fn sync_single(
             timestamp: -1,
             tracked_commit_hashes: vec![],
         });
-    let mut commits: Vec<Commit> = git::read_commits(&git_repo).unwrap();
+    let mut commits: Vec<Commit> = git::read_commits(&git_repo).unwrap_or(vec![]);
     let commit_hashes: Vec<String> = commits.iter().map(|c| c.hash.clone()).collect();
     let (provider, user, repo) = generate_credentials_from_clone_url(&repo.url);
 
