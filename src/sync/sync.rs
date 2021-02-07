@@ -39,7 +39,9 @@ pub async fn sync_all() -> SyncAllResult {
     for task in tasks {
         let res = task.await;
         if res.is_ok() {
-            result.synced_count += 1;
+            if res.unwrap().status().is_success() {
+                result.synced_count += 1;
+            }
         } else {
             result.error = Option::from(res.err().unwrap().to_string())
         }
@@ -59,8 +61,8 @@ pub async fn sync_repo(provider: &String, user: &String, repo: &String) -> SyncS
     }
     let repo_to_sync = repo_to_sync.unwrap();
     let res = sync_single(&repo_to_sync, &cfg, &client).await;
-
-    if res.is_err() {
+    // TODO: Check for error in json
+    if res.is_err() || !res.unwrap().status().is_success() {
         return SyncSingleResult { error: Option::from("Error syncing repo!".to_string()), ok: false }
     }
     return SyncSingleResult { error: None, ok: true }
@@ -77,7 +79,11 @@ async fn sync_single(
         warn!("Error fetching git data: {}", res.err().unwrap().message())
     }
 
-    let last_sync = fetch_synced_hashes(&client, &repo, &cfg.get_target_url())
+    let last_sync = fetch_synced_hashes(
+        &client,
+        &repo,
+        &cfg.get_target_url(),
+        &cfg.access_token.clone().unwrap_or("".to_string()))
         .await
         .unwrap_or(LastSyncResponse {
             hash: "".to_string(),
@@ -111,6 +117,7 @@ async fn sync_single(
 
     return client.request(method, &generate_repo_sync_url(&cfg.get_target_url()))
         .json(&dto)
+        .header("API-key", cfg.access_token.clone().unwrap_or("".to_string()))
         .send()
         .await;
 }
@@ -122,12 +129,14 @@ fn generate_repo_sync_url(target_host: &String) -> String {
 async fn fetch_synced_hashes(
     client: &Client,
     repo: &Repository,
-    target_host: &str
+    target_host: &str,
+    api_key: &str,
 ) -> Result<LastSyncResponse, reqwest::Error> {
     let (provider, user, repo) = generate_credentials_from_clone_url(&repo.url);
     let url = format!("{}/api/commits/{}/{}/{}/hash", target_host, provider, user, repo);
 
     return Ok(client.get(&url)
+        .header("API-key", api_key)
         .send()
         .await?
         .json::<LastSyncResponse>()
