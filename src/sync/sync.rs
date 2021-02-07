@@ -79,7 +79,11 @@ async fn sync_single(
         warn!("Error fetching git data: {}", res.err().unwrap().message())
     }
 
-    let last_sync = fetch_synced_hashes(&client, &repo, &cfg.get_target_url())
+    let last_sync = fetch_synced_hashes(
+        &client,
+        &repo,
+        &cfg.get_target_url(),
+        &cfg.access_token.clone().unwrap_or("".to_string()))
         .await
         .unwrap_or(LastSyncResponse {
             hash: "".to_string(),
@@ -125,12 +129,14 @@ fn generate_repo_sync_url(target_host: &String) -> String {
 async fn fetch_synced_hashes(
     client: &Client,
     repo: &Repository,
-    target_host: &str
+    target_host: &str,
+    api_key: &str,
 ) -> Result<LastSyncResponse, reqwest::Error> {
     let (provider, user, repo) = generate_credentials_from_clone_url(&repo.url);
     let url = format!("{}/api/commits/{}/{}/{}/hash", target_host, provider, user, repo);
 
     return Ok(client.get(&url)
+        .header("API-key", api_key)
         .send()
         .await?
         .json::<LastSyncResponse>()
