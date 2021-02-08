@@ -1,0 +1,3 @@
+[ver:1,total:420,branch:feature/SYNC-24]
+src/sync/sync.rs:360,1612699200:180,1612710000:180,r
+.github/workflows/remove-old-artifacts.yaml:60,1612807200:60,m
