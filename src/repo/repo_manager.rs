@@ -104,11 +104,13 @@ pub async fn add_repo(repo_dto: AddRepositoryDto) -> AddRepoDto {
             message: None,
         };
     }
+    let error_msg = cloned_repo.err().map(|e| e.to_string()).unwrap_or_default();
+    error!("Error adding repo: {}", &error_msg);
     return AddRepoDto {
         success: false,
         provider: None,
         user: None,
         repo: None,
-        message: cloned_repo.err().map(|e| e.to_string()),
+        message: Option::from(error_msg),
     };
 }

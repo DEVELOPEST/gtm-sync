@@ -1,7 +1,7 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 #[macro_use] extern crate rocket;
-#[macro_use(info, warn)] extern crate log;
+#[macro_use(info, warn, error)] extern crate log;
 
 mod server;
 mod gtm;

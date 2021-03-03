@@ -63,6 +63,7 @@ pub async fn sync_repo(provider: &String, user: &String, repo: &String) -> SyncS
     let res = sync_single(&repo_to_sync, &cfg, &client).await;
     // TODO: Check for error in json
     if res.is_err() || !res.unwrap().status().is_success() {
+        error!("Error syncing repo!");
         return SyncSingleResult { error: Option::from("Error syncing repo!".to_string()), ok: false }
     }
     return SyncSingleResult { error: None, ok: true }
