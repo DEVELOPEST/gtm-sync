@@ -1,0 +1,11 @@
+[ver:1,total:2520,branch:feature/SYNC-46]
+src/gtm/gtm.rs:772,1613311200:180,1613314800:360,1613322000:232,r
+src/repo/repo_manager.rs:500,1614754800:480,1614765600:20,m
+.gtm/Cargo-> Run gtm-sync.app:322,1613322000:310,1614765600:12,r
+src/sync/sync.rs:182,1613322000:10,1614765600:172,m
+src/server/controller.rs:180,1614754800:180,r
+.github/workflows/remove-old-artifacts.yaml:180,1612810800:180,r
+src/main.rs:152,1613322000:128,1614765600:24,m
+config.toml:150,1613322000:150,r
+Cargo.toml:60,1613322000:60,r
+.gtm/Cargo-> Build `Run gtm-sync`.app:22,1613322000:10,1614765600:12,r
