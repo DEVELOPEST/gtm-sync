@@ -21,7 +21,7 @@ pub struct SyncSingleResult {
 
 #[derive(Deserialize)]
 pub struct LastSyncResponse {
-    hash: String,
+    // hash: String,
     timestamp: i64,
     tracked_commit_hashes: Vec<String>,
 }
@@ -87,7 +87,6 @@ async fn sync_single(
         &cfg.access_token.clone().unwrap_or("".to_string()))
         .await
         .unwrap_or(LastSyncResponse {
-            hash: "".to_string(),
             timestamp: -1,
             tracked_commit_hashes: vec![],
         });
@@ -108,8 +107,6 @@ async fn sync_single(
         provider: provider.clone(),
         user: user.clone(),
         repo: repo.clone(),
-        sync_url: cfg.get_sync_url(),
-        access_token: cfg.access_token.clone(),
         commits,
     };
     let dto = RepoWrapperDto {

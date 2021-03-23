@@ -22,6 +22,7 @@ pub struct AddRepoDto {
     pub provider: Option<String>,
     pub user: Option<String>,
     pub repo: Option<String>,
+    pub sync_url: Option<String>,
     pub message: Option<String>,
 }
 
@@ -30,8 +31,6 @@ pub struct RepoDto {
     pub provider: String,
     pub user: String,
     pub repo: String,
-    pub sync_url: String,
-    pub access_token: Option<String>,
     pub commits: Vec<Commit>,
 }
 
@@ -76,8 +75,6 @@ pub fn get_repo(provider: &String, user: &String, repo: &String) -> RepoWrapperD
         provider: provider.clone(),
         user: user.clone(),
         repo: repo.clone(),
-        sync_url: cfg.get_sync_url(),
-        access_token: cfg.access_token,
         commits
     };
     return RepoWrapperDto {
@@ -96,11 +93,13 @@ pub async fn add_repo(repo_dto: AddRepositoryDto) -> AddRepoDto {
             config::save(&config::CONFIG_PATH, &cfg);
         }
         sync::sync_repo(&provider, &user, &repository).await;
+        let sync_url = format!("{}/repositories/{}/{}/{}/sync", cfg.get_sync_url(), provider, user, repository);
         return AddRepoDto {
             success: true,
             provider: Option::from(provider),
             user: Option::from(user),
             repo: Option::from(repository),
+            sync_url: Option::from(sync_url),
             message: None,
         };
     }
@@ -111,6 +110,7 @@ pub async fn add_repo(repo_dto: AddRepositoryDto) -> AddRepoDto {
         provider: None,
         user: None,
         repo: None,
+        sync_url: None,
         message: Option::from(error_msg),
     };
 }
