@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 use crate::config::config;
-use crate::sync::sync;
 use crate::config::repository::generate_credentials_from_clone_url;
 use crate::config::repository::Repository;
 use crate::gtm::git;
 use crate::gtm::gtm::Commit;
+use crate::sync::sync;
 
 #[derive(Serialize, Deserialize)]
 pub struct AddRepositoryDto {
@@ -93,7 +93,12 @@ pub async fn add_repo(repo_dto: AddRepositoryDto) -> AddRepoDto {
             config::save(&config::CONFIG_PATH, &cfg);
         }
         sync::sync_repo(&provider, &user, &repository).await;
-        let sync_url = format!("{}/repositories/{}/{}/{}/sync", cfg.get_sync_url(), provider, user, repository);
+        let sync_url = if provider.contains("bitbucket") {
+            format!("{}/repositories/{}/{}/{}/sync", cfg.get_sync_url(), provider, user, repository)
+        } else {
+            let domain = if provider.contains("gitlab") { "gitlab" } else { "github" };
+            format!("{}/hooks/{}/push", cfg.get_sync_url(), domain)
+        };
         return AddRepoDto {
             success: true,
             provider: Option::from(provider),
