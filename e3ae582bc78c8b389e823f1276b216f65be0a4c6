@@ -1,0 +1,9 @@
+[ver:1,total:2160,branch:feature/SYNC-54]
+.gtm/Cargo-> Run gtm-sync.app:640,1616486400:460,1616490000:180,r
+src/server/controller.rs:611,1616486400:252,1616490000:359,m
+src/server/resource.rs:521,1616486400:99,1616490000:422,m
+src/repo/repo_manager.rs:184,1616490000:184,m
+src/server/server.rs:80,1616490000:80,m
+src/server/mod.rs:69,1616486400:69,m
+src/config/repository.rs:35,1616490000:35,m
+.gtm/Cargo-> Build `Run gtm-sync`.app:20,1616486400:20,r
