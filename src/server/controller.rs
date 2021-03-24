@@ -3,6 +3,8 @@ use rocket_contrib::json::{JsonValue, Json};
 use crate::repo::repo_manager;
 use crate::sync::sync;
 use crate::repo::repo_manager::AddRepositoryDto;
+use crate::server::resource::{GithubPushWebhook, GitlabPushWebhook};
+use crate::config::repository::generate_credentials_from_clone_url;
 
 #[get("/repositories/<provider>/<user>/<repo>")]
 pub fn repo(provider: String, user: String, repo: String) -> JsonValue {
@@ -34,4 +36,22 @@ pub fn sync_repo(provider: String, user: String, repo: String) -> JsonValue {
 #[post("/repositories/<provider>/<user>/<repo>/sync")]
 pub fn post_sync_repo(provider: String, user: String, repo: String) -> JsonValue {
     sync_repo(provider, user, repo)
+}
+
+#[post("/hooks/github/push", data="<dto>")]
+pub fn sync_repo_github(dto: Json<GithubPushWebhook>) -> JsonValue {
+    let dto = dto.into_inner();
+    let (provider, user, repo) = generate_credentials_from_clone_url(&dto.repository.ssh_url);
+    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(sync::sync_repo(&provider, &user, &repo));
+    rocket_contrib::json!({})
+}
+
+#[post("/hooks/gitlab/push", data="<dto>")]
+pub fn sync_repo_gitlab(dto: Json<GitlabPushWebhook>) -> JsonValue {
+    let dto = dto.into_inner();
+    let (provider, user, repo) = generate_credentials_from_clone_url(&dto.repository.git_ssh_url);
+    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(sync::sync_repo(&provider, &user, &repo));
+    rocket_contrib::json!({})
 }
