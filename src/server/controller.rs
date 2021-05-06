@@ -14,21 +14,21 @@ pub fn repo(provider: String, user: String, repo: String) -> JsonValue {
 
 #[post("/repositories", data="<repo>")]
 pub fn add_repo(repo: Json<AddRepositoryDto>) -> JsonValue {
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     let response = rt.block_on(repo_manager::add_repo(repo.into_inner()));
     rocket_contrib::json!(&response)
 }
 
 #[get("/repositories/sync-all")]
 pub fn sync_all() -> JsonValue {
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     let response = rt.block_on(sync::sync_all());
     rocket_contrib::json!(&response)
 }
 
 #[get("/repositories/<provider>/<user>/<repo>/sync")]
 pub fn sync_repo(provider: String, user: String, repo: String) -> JsonValue {
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     let response = rt.block_on(sync::sync_repo(&provider, &user, &repo));
     rocket_contrib::json!(&response)
 }
@@ -42,7 +42,7 @@ pub fn post_sync_repo(provider: String, user: String, repo: String) -> JsonValue
 pub fn sync_repo_github(dto: Json<GithubPushWebhook>) -> JsonValue {
     let dto = dto.into_inner();
     let (provider, user, repo) = generate_credentials_from_clone_url(&dto.repository.ssh_url);
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     rt.block_on(sync::sync_repo(&provider, &user, &repo));
     rocket_contrib::json!({})
 }
@@ -51,7 +51,7 @@ pub fn sync_repo_github(dto: Json<GithubPushWebhook>) -> JsonValue {
 pub fn sync_repo_gitlab(dto: Json<GitlabPushWebhook>) -> JsonValue {
     let dto = dto.into_inner();
     let (provider, user, repo) = generate_credentials_from_clone_url(&dto.repository.git_ssh_url);
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
     rt.block_on(sync::sync_repo(&provider, &user, &repo));
     rocket_contrib::json!({})
 }
