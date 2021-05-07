@@ -1,6 +1,6 @@
 [package]
 name = "gtm-sync"
-version = "0.1.0"
+version = "0.1.4"
 authors = ["tavo <tavo.annus@gmail.com>"]
 edition = "2018"
 
