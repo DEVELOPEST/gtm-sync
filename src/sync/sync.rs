@@ -131,7 +131,7 @@ async fn fetch_synced_hashes(
     api_key: &str,
 ) -> Result<LastSyncResponse, reqwest::Error> {
     let (provider, user, repo) = generate_credentials_from_clone_url(&repo.url);
-    let url = format!("{}/api/commits/{}/{}/{}/hash", target_host, provider, user, repo);
+    let url = format!("{}/api/commits/hash?provider={}&user={}&repo={}", target_host, provider, user, repo);
 
     return Ok(client.get(&url)
         .header("API-key", api_key)
