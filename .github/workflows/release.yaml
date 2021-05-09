@@ -51,3 +51,4 @@ jobs:
           name: gtm-sync-debian
           path: |
             ./*.deb
+          retention-days: 7
