@@ -1,0 +1,9 @@
+[ver:1,total:1560,branch:feature/SYNC-81]
+src/server/controller.rs:900,1620367200:180,1620381600:720,r
+config.toml:200,1620381600:20,1620385200:180,r
+.github/workflows/release.yaml:150,1620550800:150,m
+LICENSE:120,1620550800:120,m
+src/config/config.rs:100,1620381600:100,r
+.git/MERGE_MSG:40,1620367200:40,d
+.github/workflows/develop.yml:30,1620550800:30,m
+.git/TAG_EDITMSG:20,1620367200:20,d
