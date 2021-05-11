@@ -29,3 +29,4 @@ jobs:
         with:
           name: gtm-sync
           path: ./target/release/gtm-sync
+          retention-days: 7
