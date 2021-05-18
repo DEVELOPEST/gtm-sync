@@ -1,0 +1,7 @@
+[ver:1,total:1260,branch:feature/SYNC-84]
+src/sync/sync.rs:640,1621321200:640,m
+Cargo.toml:210,1620550800:210,r
+README.md:180,1620550800:180,r
+.gtm/Cargo-> Build `Run gtm-sync`.app:140,1621321200:140,r
+LICENSE:60,1620550800:30,1621321200:30,r
+.github/workflows/release.yaml:30,1621321200:30,r
