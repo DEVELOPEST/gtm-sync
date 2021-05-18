@@ -26,6 +26,12 @@ pub struct LastSyncResponse {
     tracked_commit_hashes: Vec<String>,
 }
 
+#[derive(Debug)]
+pub enum SyncError {
+    Reqwest(reqwest::Error),
+    Git2(git2::Error),
+}
+
 pub async fn sync_all() -> SyncAllResult {
     let cfg = config::load(&config::CONFIG_PATH);
     let client = reqwest::Client::new();
@@ -43,7 +49,7 @@ pub async fn sync_all() -> SyncAllResult {
                 result.synced_count += 1;
             }
         } else {
-            result.error = Option::from(res.err().unwrap().to_string())
+            result.error = Option::from("Error has occurred syncing repositories".to_string())
         }
     }
 
@@ -73,8 +79,8 @@ async fn sync_single(
     repo: &Repository,
     cfg: &config::Config,
     client: &reqwest::Client,
-) -> Result<reqwest::Response, reqwest::Error> {
-    let git_repo = git::clone_or_open(&repo, &cfg).unwrap();
+) -> Result<reqwest::Response, SyncError> {
+    let git_repo = git::clone_or_open(&repo, &cfg).map_err(SyncError::Git2)?;
     let res = git::fetch(&git_repo, &repo, &cfg);
     if res.is_err() {
         warn!("Error fetching git data: {}", res.err().unwrap().message())
@@ -113,11 +119,12 @@ async fn sync_single(
         repository: Option::from(gtm_repo)
     };
 
-    return client.request(method, &generate_repo_sync_url(&cfg.get_target_url()))
+    return Ok(client.request(method, &generate_repo_sync_url(&cfg.get_target_url()))
         .json(&dto)
         .header("API-key", cfg.access_token.clone().unwrap_or("".to_string()))
         .send()
-        .await;
+        .await
+        .map_err(SyncError::Reqwest)?);
 }
 
 fn generate_repo_sync_url(target_host: &String) -> String {
