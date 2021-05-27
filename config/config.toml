@@ -1,0 +1,9 @@
+target_base_url = "http://localhost:8000/services/gtm"
+access_token = "sdfsdfsdfsdfsdfsdfsdfsdfsdfsdfsdfsdfsdfsdfsdfsd"
+ssh_public_key = "/path/to/.ssh/id_git.pub"
+ssh_private_key = "/path/to/.ssh/id_git"
+repositories_base_path = "/path/to/store/repositories"
+
+[[repositories]]
+url = "git@github.com:DEVELOPEST/gtm-sync.git"
+path = "/path/to/store/repositories/github.com/DEVELOPEST/gtm-sync"
