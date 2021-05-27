@@ -1,0 +1,8 @@
+[ver:1,total:1080,branch:feature/SYNC-82]
+README.md:660,1622113200:300,1622116800:360,m
+.github/workflows/release.yaml:135,1621324800:135,r
+config/config.toml:120,1622116800:120,m
+readme/logo.svg:60,1622113200:60,m
+src/sync/sync.rs:60,1621324800:60,r
+.git/MERGE_MSG:30,1621324800:30,d
+.git/TAG_EDITMSG:15,1621324800:15,d
