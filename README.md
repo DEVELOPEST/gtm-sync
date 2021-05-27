@@ -6,6 +6,8 @@
 This client is meant to be run wherever it can access your git repository to fetch time data 
 from notes and sync it up to backend ([gtm-api](https://github.com/DEVELOPEST/gtm-api))  
 
+## Installation
+You can install it to debian based system via `.deb` package which you can find in Gihub Releases.
 
 ## Usage
 Add repo with
