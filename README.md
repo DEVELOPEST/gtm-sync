@@ -4,7 +4,7 @@
 
 # GTM sync
 This client is meant to be run wherever it can access your git repository to fetch time data 
-from notes and sync it up to backend (`gtm-api`)  
+from notes and sync it up to backend ([gtm-api](https://github.com/DEVELOPEST/gtm-api))  
 
 
 ## Usage
@@ -17,3 +17,9 @@ curl -H "Content-Type: application/json" \
 ```
 or by manually editing config file.  
 Example config can be found in `config/config.toml`
+  
+Sync repo with  
+```bash
+curl http://localhost:8090/repositories/<provider>/<user>/<repo>/sync
+```
+For more endpoints see `src/server/controller.rs`
