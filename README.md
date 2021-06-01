@@ -25,3 +25,8 @@ Sync repo with
 curl http://localhost:8090/repositories/<provider>/<user>/<repo>/sync
 ```
 For more endpoints see `src/server/controller.rs`
+
+## Contributing
+
+We are happy to welcome all contributions!
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for more details.
